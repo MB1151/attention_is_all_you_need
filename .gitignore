@@ -1,0 +1,9 @@
+.attention_venv
+*Zone.Identifier
+*__pycache__
+Data/AI4Bharat/*
+Data/trained_models/translation_models/*
+experiments.ipynb
+output.txt
+model_training_data.txt
+.vscode/*
