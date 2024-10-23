@@ -5,7 +5,7 @@ from model_implementation.data_processing.data_preparation.data_batching_and_mas
 from model_implementation.data_processing.tokenization.base_tokenizer import BaseTokenizer
 from model_implementation.model_building.machine_translation_model import MachineTranslationModel
 from model_implementation.model_inference.beam_search import BeamSearch
-from model_implementation.model_inference.greedy_search import greedy_search
+from model_implementation.model_inference.greedy_search import GreedySearch
 from model_implementation.utils.constants import START_TOKEN, END_TOKEN, PAD_TOKEN, MAX_INFERENCE_SEQ_LEN
 from torch import Tensor
 from typing import List, Tuple
@@ -83,19 +83,19 @@ def translate(translation_model: MachineTranslationModel,
     if search_type == "beam":
         # Create an instance of the BeamSearch class.
         beam_search = BeamSearch(translation_model=translation_model, 
-                                tgt_seq_limit=MAX_INFERENCE_SEQ_LEN, 
-                                sos_token_id=sos_token_id, 
-                                eos_token_id=eos_token_id, 
-                                beam_width=beam_size,
-                                device=device)
+                                 tgt_seq_limit=MAX_INFERENCE_SEQ_LEN, 
+                                 sos_token_id=sos_token_id, 
+                                 eos_token_id=eos_token_id, 
+                                 beam_width=beam_size,
+                                 device=device)
         tokenized_tgt_sequences = beam_search.decode(src_batch=src_batch, src_mask=src_mask)
     elif search_type == "greedy":
-        tokenized_tgt_sequences = greedy_search(translation_model=translation_model, 
-                                                src_batch=src_batch, 
-                                                src_mask=src_mask, 
-                                                sos_token_id=sos_token_id, 
-                                                eos_token_id=eos_token_id,
-                                                device=device)
+        greedy_search = GreedySearch(translation_model=translation_model, 
+                                     tgt_seq_limit=MAX_INFERENCE_SEQ_LEN, 
+                                     sos_token_id=sos_token_id, 
+                                     eos_token_id=eos_token_id, 
+                                     device=device)
+        tokenized_tgt_sequences = greedy_search.decode(src_batch=src_batch, src_mask=src_mask)
     else:
         raise ValueError(f"Invalid search type '{search_type}' for inference.")
     # Convert the target token ids to the corresponding tokens.

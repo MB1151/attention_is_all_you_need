@@ -57,9 +57,9 @@ class DecoderLayer(nn.Module):
             tgt_mask (Tensor): Mask to prevent the future tokens in the target sentence to attend to the previous tokens and
                                also to prevent padding tokens from attending to any other token except other padding tokens.
                                SHAPE: [batch_size, 1, seq_len - 1, seq_len - 1]
-            src_mask (Optional[Tensor], optional): Mask to prevent the the padding tokens to attend to the tokens in the tgt sentence. 
-                                                   Defaults to None.
-                                                   SHAPE: [batch_size, 1, seq_len, seq_len]
+            src_mask (Tensor, optional): Mask to prevent the the padding tokens to attend to the tokens in the tgt sentence. 
+                                         Defaults to None.
+                                         SHAPE: [batch_size, 1, seq_len, seq_len]
 
         Returns:
             Tensor: Returns the output of the DecoderLayer. This is the output of the Positionwise FeedForward Neural Network.
@@ -102,8 +102,8 @@ class Decoder(nn.Module):
                                   SHAPE: [batch_size, seq_len, d_model]
             tgt_mask (Tensor): Boolean mask to be applied during self attention scores calculation.
                                SHAPE: [batch_size, 1, seq_len - 1, seq_len - 1].
-            src_mask (Optional[Tensor], optional): Boolean mask to be applied during src attention scores calculation.
-                                                   SHAPE: [batch_size, 1, seq_len, seq_len]. Defaults to None.
+            src_mask (Tensor, optional): Boolean mask to be applied during src attention scores calculation.
+                                         SHAPE: [batch_size, 1, seq_len, seq_len]. Defaults to None.
 
         Returns:
             Tensor: Output of the Decoder.

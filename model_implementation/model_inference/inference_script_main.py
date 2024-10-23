@@ -2,7 +2,6 @@
 # english sentences to telugu.
 
 from model_implementation.data_processing.data_preparation.data_helpers import get_tokenizers
-from model_implementation.data_processing.tokenization.bpe_tokenizer import BPETokenizer
 from model_implementation.model_building.machine_translation_model import MachineTranslationModel
 from model_implementation.model_inference.translator import translate
 from model_implementation.utils.constants import ( 

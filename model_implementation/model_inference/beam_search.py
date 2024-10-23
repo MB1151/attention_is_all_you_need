@@ -78,34 +78,14 @@ from dataclasses import dataclass
 
 from model_implementation.data_processing.data_preparation.data_batching_and_masking import construct_look_ahead_mask
 from model_implementation.model_building.machine_translation_model import MachineTranslationModel
+from model_implementation.model_inference.base_search import SequenceSearchBase, SequenceState
 from torch import Tensor
 from typing import Dict, List, Tuple
 
 import torch
 
-# Contains the state of the sequence that is predicted by the beam search.
-@dataclass
-class SequenceState:
-    # Index of the source sentence for which the current target sequence has been predicted.
-    index: int
-    # Sequence of tokens in the target prediction.
-    tokens: Tensor
-    # Log of the probability that this is the current translation for the source sequence.
-    log_prob: float
 
-
-# Holds the state of Beam search.
-class BeamState:
-    def __init__(self):
-        # Holds one complete sequence (if found already) with the maximum probability for every source
-        # sequence.
-        self.complete_state: Dict[int, SequenceState] = {}
-        # List of predicted tgt sequences for which the <eos> token has not been predicted yet. So,
-        # these sequences are potentially incomplete and will continue through the prediction process.
-        self.running_state: List[SequenceState] = []
-
-
-class BeamSearch:
+class BeamSearch(SequenceSearchBase):
     def __init__(self, 
                  translation_model: MachineTranslationModel, 
                  tgt_seq_limit: int,
@@ -123,12 +103,12 @@ class BeamSearch:
             beam_width (int): Number of potential target token predictions to be considered at each time step.
             device (str): Device to be used for storing the tensors. Can be either 'cpu' or 'cuda'.
         """
-        self.translation_model = translation_model
-        self.tgt_seq_limit = tgt_seq_limit
-        self.sos_token_id = sos_token_id
-        self.eos_token_id = eos_token_id
+        super().__init__(translation_model=translation_model, 
+                         tgt_seq_limit=tgt_seq_limit, 
+                         sos_token_id=sos_token_id, 
+                         eos_token_id=eos_token_id, 
+                         device=device)
         self.beam_width = beam_width
-        self.device = device
 
 
     def decode(self, src_batch: Tensor, src_mask: Tensor) -> List[Tensor]:
@@ -152,13 +132,13 @@ class BeamSearch:
         # Pass the source sentence through the encoder to find the encoded src sentence tokens.
         encoded_src = self.translation_model.encode(src=src_batch, src_mask=src_mask)
         # Initialize the running_state for beam search to start.
-        self.__initialize_beams(src_batch.size(0))
+        self.initialize_search_state(src_batch.size(0))
         # We generate 'tgt_seq_limit' number of tokens (the maximum allowed) in the target sequences.
         for _ in range(self.tgt_seq_limit):
             # If there are no potential tgt sequences, we stop the beam search. This essentially means
             # we already found atleast 'beam_width' number of complete tgt sequences for each src
             # sequence in the batch.
-            if len(self.beam_state.running_state) == 0:
+            if len(self.search_state.running_state) == 0:
                 break
             # As we proceed forward in the algorithm, some of the src sequences might have already found have found <eos> 
             # token in all of its corresponding tgt sequences and so these should not be used anymore for further 
@@ -168,110 +148,13 @@ class BeamSearch:
             # Gets the corresponding tgt sequences and theirs masks as a tensor to be used with the
             # translation model. 
             tgt_for_inference, tgt_mask_for_inference = self.get_tgt_for_running_state()
-            # Predict 1 token for all the running tgt sequences and update the beam state.
+            # Predict 1 token for all the running tgt sequences and update the search state.
             self.advance(encoded_src=src_for_inference, src_mask=src_mask_for_inference, tgt_batch=tgt_for_inference, tgt_mask=tgt_mask_for_inference)
         self.add_running_state_to_complete_state()
-        return [self.beam_state.complete_state[src_seq_idx].tokens[1:-1] for src_seq_idx in sorted(self.beam_state.complete_state.keys())]
+        return [self.search_state.complete_state[src_seq_idx].tokens[1:-1] for src_seq_idx in sorted(self.search_state.complete_state.keys())]
 
 
-    def add_running_state_to_complete_state(self):
-        """Adds the running sequences to complete sequences if there are no complete tgt sequences for 
-        a source sequence."""
-        dummy_tensor = torch.tensor(data=[self.sos_token_id], dtype=torch.int32, device=self.device)
-        # Holds the sequence with the maximum probability for a given source sequence.
-        max_prob_state = SequenceState(index=-1, tokens=dummy_tensor, log_prob=float('-inf'))
-        for state in self.beam_state.running_state:
-            # If the source sequence of the current running sequence is not already in the complete sequences, 
-            # that means we haven't found a complete sequence for this (identified by the index) source sequence 
-            # yet. So, we hold this sequence in the max_prob_state as a potential complete sequence.
-            if state.index not in self.beam_state.complete_state:
-                # If we haven't found any complete sequence yet, we just store this sequence as the potential
-                # complete sequence in the max_prob_state.
-                if max_prob_state.index == -1:
-                    max_prob_state = state
-                elif max_prob_state.index != state.index:
-                    # If all the running sequences have been looked at for the previous src sequence (identified 
-                    # by max_prob_state.index), then we just add the potential complete sequence to the list of
-                    # complete sequences.
-                    self.beam_state.complete_state[state.index] = max_prob_state
-                    # We also store the new running sequence as a new potential running sequence for the new src
-                    # sequence (identified by the index state.index).
-                    max_prob_state = state
-                else:
-                    # If a new potential complete sequence is found, we pick the one with maximum probability and
-                    # store it as the potential complete sequence.
-                    if max_prob_state.log_prob < state.log_prob:
-                        max_prob_state = state
-        # Add the left out potential sequence to the list of complete sequences.
-        if max_prob_state.index != -1:
-            max_prob_state.tokens = torch.cat(tensors=[max_prob_state.tokens, torch.tensor(data=[self.eos_token_id], dtype=torch.int32, device=self.device)], dim=0)
-            self.beam_state.complete_state[max_prob_state.index] = max_prob_state
-
-
-    def get_src_for_running_state(self, encoded_src: Tensor, src_mask: Tensor) -> Tuple[Tensor, Tensor]:
-        """Creates a new encoded src tensor in which the src sequences match the indices in the running 
-        state maintained by beam search. Also, creates the src masks for the corresponding src sequences.
-
-        Args:
-            encoded_src (Tensor): Encoded source sequences i.e., the output of the Encoder after passing the src_batch.
-                                  SHAPE: [batch_size, seq_len, d_model]
-            src_mask (Tensor): Mask for the corresponding encoded_src.
-                               SHAPE: [batch_size, 1, seq_len, seq_len]
-        Returns:
-            Tuple[Tensor, Tensor]: src sequence batch tensor and the corresponding mask to be used with Decoder.
-                                   SHAPE: ([len(running_state), seq_len, d_model], [len(running_state), 1, seq_len, seq_len])
-        """
-        # Finds the indices of all the src_sequences for which there is a running tgt sequence. If the same
-        # src sequence has multiple tgt sequences, the same src sequence index appears multiple times.
-        # Example src_indices: [0, 0, 3, 3, 3, 7, 7, 8]
-        # The above src_indices means 
-        # There are 2 running tgt sequences for the 0th src sequence.
-        # There are 3 running tgt sequences for the 3rd src sequence.
-        # There are 2 running tgt sequences for the 7th src sequence.
-        # There is 1 running tgt sequence for the 8th src sequence.
-        # The index is the index of the src_sequence in the 'src_batch' or the 'encoded_src'.
-        src_indices = torch.tensor(data=[state.index for state in self.beam_state.running_state], dtype=torch.int32, device=self.device)
-        # Select the tensors corresponding to the indices in 'src_indices' and create a new
-        # tensor to be used as a src for inference.
-        # Example src_for_inference: [0th tensor, 0th tensor, 3rd tensor, 3rd tensor, 3rd tensor, 7th tensor, 7th tensor, 7th tensor, 8th tensor] 
-        src_for_inference = torch.index_select(input=encoded_src, dim=0, index=src_indices).to(self.device)
-        # Create the src mask similarly.
-        src_mask_for_inference = torch.index_select(input=src_mask, dim=0, index=src_indices).to(self.device)
-        return src_for_inference, src_mask_for_inference
-
-
-    def get_tgt_for_running_state(self) -> Tuple[Tensor, Tensor]:
-        """Creates a new tgt tensor by stacking all the tgt sequences in the running state maintained 
-        by beam search. Also, creates the tgt masks for the corresponding tgt sequences.
-
-        Returns:
-            Tuple[Tensor, Tensor]: tgt sequence batch tensor and the corresponding mask to be used with Decoder.
-                                   SHAPE: ([len(running_state), __VARIABLE__, d_model], [len(running_state), 1, __VARIABLE__, __VARIABLE__])
-        """
-        tgt_for_inference = torch.stack(tensors=[state.tokens for state in self.beam_state.running_state], dim=0).to(self.device)
-        # Creates look ahead mask and updates its shape to a 4D tensor as required by the Decoder.
-        # Since there are no padding tokens in the tgt sequences, the same mask is going to be used by all
-        # tgt sequences in the batch and so we just repeat the same mask len(running_state) number of times.
-        tgt_mask_for_inference = construct_look_ahead_mask(size=tgt_for_inference.size(1)).unsqueeze(0).unsqueeze(0).repeat(len(self.beam_state.running_state), 1, 1, 1).to(self.device)
-        return tgt_for_inference, tgt_mask_for_inference
-    
-
-    def __initialize_beams(self, batch_size: int):
-        """Initializes the beam state and specifically the running state for each of src sequences.
-
-        Args:
-            batch_size (int): Number of src sequences to be translated to tgt language.
-        """
-        self.beam_state = BeamState()
-        # The decoder needs the initial 'sos_token_id' token for the prediction process to start. So,
-        # we create 1 tgt token sequence for the corresponding src sequence i.e., we create 1 
-        # 'SequenceState' object for 1 tgt sequence in the running_state. Each 'SequenceState' object 
-        # in the running state corresponds to one potential tgt sequence the beam search algorithm is 
-        # looking to expand by predicting next tokens.  
-        self.beam_state.running_state = [SequenceState(index=idx, tokens=torch.tensor(data=[self.sos_token_id], dtype=torch.int32, device=self.device), log_prob=0.0) for idx in range(batch_size)]
-
-
-    def __update_beam_state(self, predicted_log_probabilities: Tensor):
+    def update_search_state(self, predicted_log_probabilities: Tensor):
         """Updates the state of the beam search by appending the newly predicted tokens to the running tgt 
         sequences. If a tgt sequence is complete (<eos> token is predicted), it is added (depends on log_prob) 
         to the complete sequences. If the tgt sequence is not complete, it is added back to the running state 
@@ -289,14 +172,14 @@ class BeamSearch:
         # A given source sentence can have multiple potential target sequences if beam_width > 1. Here, 
         # we find the number of target sequences currently being used (in running_state) to predict the 
         # next token for each of the source sentences.
-        _, tgt_group_counts = torch.unique(input=torch.tensor(data=[seq_state.index for seq_state in self.beam_state.running_state], dtype=torch.int16), return_counts=True)
+        _, tgt_group_counts = torch.unique(input=torch.tensor(data=[seq_state.index for seq_state in self.search_state.running_state], dtype=torch.int16), return_counts=True)
         # Holds the running_state for the next iteration of beam search.
         new_running_state: List[SequenceState] = []
         # Index to keep track of the start of the group of tgt sequences for a single source sequence.
         start_index = 0
         for tgt_group_size in tgt_group_counts:
             # Extract the group of SequenceState objects for a single source sentence.
-            old_tgt_state_group = self.beam_state.running_state[start_index: start_index + tgt_group_size.item()]
+            old_tgt_state_group = self.search_state.running_state[start_index: start_index + tgt_group_size.item()]
             # Extract the group of probabilities for the corresponding tgt sequence token predictions.
             new_tgt_prob_group = torch.unbind(predicted_log_probabilities[start_index: start_index + tgt_group_size.item()], dim=0)
             # Holds all the new sequences formed after appending the token for the previous group of tgt sequences.
@@ -335,14 +218,14 @@ class BeamSearch:
                 src_seq_idx = complete_beams[0].index
                 # sort the completed sequences according to their probabilities in descending order. 
                 complete_beams.sort(key=lambda seq_state: seq_state.log_prob, reverse=True)
-                if src_seq_idx in self.beam_state.complete_state:
+                if src_seq_idx in self.search_state.complete_state:
                     # If we found complete sequences before for this specific source sequence, we only store
                     # the complete sequence for which the probability of occurence is the highest.
-                    if self.beam_state.complete_state[src_seq_idx].log_prob < complete_beams[0].log_prob:
-                        self.beam_state.complete_state[src_seq_idx] = complete_beams[0]
+                    if self.search_state.complete_state[src_seq_idx].log_prob < complete_beams[0].log_prob:
+                        self.search_state.complete_state[src_seq_idx] = complete_beams[0]
                 else:
                     # If this is the first complete sequence we found, we just store this specific sequence.
-                    self.beam_state.complete_state[src_seq_idx] = complete_beams[0]           
+                    self.search_state.complete_state[src_seq_idx] = complete_beams[0]           
             if len(running_beams) > 0:              
                 # sort the running sequences according to their probabilities in descending order.
                 running_beams.sort(key=lambda seq_state: seq_state.log_prob, reverse=True)
@@ -351,27 +234,38 @@ class BeamSearch:
                 new_running_state.extend(running_beams[:min(self.beam_width, len(running_beams))])
                 # Update the start_index to the start of the next group of tgt sequences.
             start_index += tgt_group_size.item()
-        self.beam_state.running_state = new_running_state
+        self.search_state.running_state = new_running_state
 
 
-    def advance(self, encoded_src: Tensor, src_mask: Tensor, tgt_batch: Tensor, tgt_mask: Tensor):
-        """Predicts 1 token for all the (src, tgt) pairs and appends it at the back of each
-        tgt sequence. Also, updates the beam state according the newly predicted tokens and their
-        associated probabilities.
-
-        Args:
-            encoded_src (Tensor): Encoded source sequences i.e., the output of the Encoder after passing the src_batch.
-                                  SHAPE: [len(running_state), seq_len, d_model]
-            src_mask (Tensor): Mask for the corresponding encoded_src.
-                               SHAPE: [len(running_state), 1, seq_len, seq_len]
-            tgt_batch (Tensor): The input tgt sequences for which a new token needs to be predicted.
-                                SHAPE: [len(running_state), __VARIABLE__, d_model]
-            tgt_mask (Tensor): Mask for the corresponding tgt_batch.
-                               SHAPE: [len(running_state), 1, __VARIABLE__, __VARIABLE__]
-        """
-        # Run the decoder on the src and the corresponding running tgt sequences.
-        decoded_tgt = self.translation_model.decode(tgt=tgt_batch, tgt_mask=tgt_mask, encoded_src=encoded_src, src_mask=src_mask)
-        # Convert the decoder output into token probabilties.
-        predicted_log_probabilities = self.translation_model.token_predictor(decoded_tgt)
-        # Update the beam state according the predicted tokens for each of the tgt sequences.
-        self.__update_beam_state(predicted_log_probabilities=predicted_log_probabilities)
+    def add_running_state_to_complete_state(self):
+        """Adds the running sequences to complete sequences if there are no complete tgt sequences for 
+        a source sequence."""
+        dummy_tensor = torch.tensor(data=[self.sos_token_id], dtype=torch.int32, device=self.device)
+        # Holds the sequence with the maximum probability for a given source sequence.
+        max_prob_state = SequenceState(index=-1, tokens=dummy_tensor, log_prob=float('-inf'))
+        for state in self.search_state.running_state:
+            # If the source sequence of the current running sequence is not already in the complete sequences, 
+            # that means we haven't found a complete sequence for this (identified by the index) source sequence 
+            # yet. So, we hold this sequence in the max_prob_state as a potential complete sequence.
+            if state.index not in self.search_state.complete_state:
+                # If we haven't found any complete sequence yet, we just store this sequence as the potential
+                # complete sequence in the max_prob_state.
+                if max_prob_state.index == -1:
+                    max_prob_state = state
+                elif max_prob_state.index != state.index:
+                    # If all the running sequences have been looked at for the previous src sequence (identified 
+                    # by max_prob_state.index), then we just add the potential complete sequence to the list of
+                    # complete sequences.
+                    self.search_state.complete_state[state.index] = max_prob_state
+                    # We also store the new running sequence as a new potential running sequence for the new src
+                    # sequence (identified by the index state.index).
+                    max_prob_state = state
+                else:
+                    # If a new potential complete sequence is found, we pick the one with maximum probability and
+                    # store it as the potential complete sequence.
+                    if max_prob_state.log_prob < state.log_prob:
+                        max_prob_state = state
+        # Add the left out potential sequence to the list of complete sequences.
+        if max_prob_state.index != -1:
+            max_prob_state.tokens = torch.cat(tensors=[max_prob_state.tokens, torch.tensor(data=[self.eos_token_id], dtype=torch.int32, device=self.device)], dim=0)
+            self.search_state.complete_state[max_prob_state.index] = max_prob_state

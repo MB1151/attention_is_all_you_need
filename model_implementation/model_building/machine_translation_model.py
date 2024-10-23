@@ -116,33 +116,34 @@ class MachineTranslationModel(nn.Module):
         encoded_src = self.encoder(input=src_embeddings, mask=src_mask)
         return encoded_src
 
-    def decode(self, tgt: Tensor, tgt_mask: Tensor, encoded_src: Tensor, src_mask: Tensor) -> Tensor:
-        """Encodes the target sentences (Telugu).
+    def decode(self, tgt: Tensor, encoded_src: Tensor, src_mask: Tensor, tgt_mask: Tensor) -> Tensor:
+        """Encodes each token in the target sequence using the information from the source sequences and the 
+        assocations between tokens in the target sequences.
 
         Args:
-            tgt (Tensor): A batch of target sentences containing the token ids corresponding to the indices in the tgt vocabulary.
+            tgt (Tensor): A batch of target sequences containing the token ids corresponding to the indices in the tgt vocabulary.
                           SHAPE: [batch_size, seq_len - 1]
-            tgt_mask (Tensor): Mask to be applied to the target sentences in each of the attention heads. Same mask will be 
-                               applied to the sentence in all the attention heads.
-                               SHAPE: [batch_size, 1, seq_len - 1, seq_len - 1]
-            encoded_src (Tensor): The encoded token representations of the source sentences. This is used to calculate the
+            encoded_src (Tensor): The encoded token representations of the source sequences. This is used to calculate the
                                   source attention scores for the target sentence.
                                   SHAPE: [batch_size, seq_len, d_model]
-            src_mask (Tensor): Mask to be applied to the source sentences in each of the attention heads. Same mask will be 
-                               applied to the sentence in all the attention heads.
+            src_mask (Tensor): Mask to be applied to the source sequences in each of the attention heads. Same mask will be 
+                               applied to the sequence in all the attention heads.
                                SHAPE: [batch_size, 1, seq_len, seq_len]
-
+            tgt_mask (Tensor): Mask to be applied to the target sequences in each of the attention heads. Same mask will be 
+                                         applied to the sequence in all the attention heads.
+                                         SHAPE: [batch_size, 1, seq_len - 1, seq_len - 1]
+                               
         Returns:
-            Tensor: Encoded (or Decoded if that makes more sense to you) target sentences. Each token in the target 
-                    sentence is represented by a vector that encodes all the information about the token and its 
-                    relationship with other tokens in the target sentence and the corresponding source sentence.
+            Tensor: Encoded (or Decoded if that makes more sense to you) target sequences. Each token in the target 
+                    sequence is represented by a vector that encodes all the information about the token and its 
+                    relationship with other tokens in the target sequence and the corresponding source sequences.
                     SHAPE: [batch_size, seq_len - 1, d_model]
         """
-        # Get the embeddings for the target sentences.
+        # Get the embeddings for the target sequences.
         tgt_embeddings = self.tgt_embedding(tgt)
         # Add the positional encodings to the embeddings.
         tgt_embeddings = self.positional_encoding(tgt_embeddings)
-        # Pass the target sentence through the decoder.
+        # Pass the target sequence through the decoder.
         decoded_tgt = self.decoder(input=tgt_embeddings, encoded_src=encoded_src, tgt_mask=tgt_mask, src_mask=src_mask)
         return decoded_tgt
 
