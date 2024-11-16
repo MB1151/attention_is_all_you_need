@@ -11,7 +11,7 @@ from model_implementation.utils.config import LOG_LEVEL
 from model_implementation.utils.constants import (
     DEBUG_DATASET_PATH, ENGLISH_VOCAB_SIZE, FULL_EN_TE_DATASET_PATH, MAX_NUM_OF_MEM_EVENTS_PER_SNAPSHOT, 
     MEMORY_SNAPSHOT_PATH, NUM_EPOCHS, PAD_TOKEN, TELUGU_VOCAB_SIZE, TRAIN_DATASET_PATH, 
-    VALIDATION_DATASET_PATH
+    VALIDATION_DATASET_PATH, DEVICE_GPU
 )
 from model_implementation.utils.logger import get_logger
 from model_implementation.utils.helpers import get_absolute_path, get_device, save_model_to_disk
@@ -48,8 +48,9 @@ def train_translation_model(device: str,
         retrain_tokenizers (bool, optional): Flag to indicate if the tokenizers should be retrained. Defaults to False.
         resume_training (bool, optional): Flag to indicate if the training should be resumed for an existing model.
     """
-    # Start recoding the GPU memory usage -- For Debugging purposes only.
-    torch.cuda.memory._record_memory_history(max_entries=MAX_NUM_OF_MEM_EVENTS_PER_SNAPSHOT)
+    if device == DEVICE_GPU:
+        # Start recoding the GPU memory usage -- For Debugging purposes only.
+        torch.cuda.memory._record_memory_history(max_entries=MAX_NUM_OF_MEM_EVENTS_PER_SNAPSHOT)
     # Running this in a try block to capture the memory snapshot even in case of an exception.
     try:
         # Time in seconds elapsed since the beginning of the epoch (Not training epoch but the standard point from which time is calculated).
@@ -101,8 +102,9 @@ def train_translation_model(device: str,
             torch.cuda.memory._dump_snapshot(filename=get_absolute_path(MEMORY_SNAPSHOT_PATH))
         except Exception as e:
             logger.error(f"Failed to capture memory snapshot {e}")
-        # Stop recording memory snapshot history.
-        torch.cuda.memory._record_memory_history(enabled=None)
+        if device == DEVICE_GPU:
+            # Stop recording memory snapshot history.
+            torch.cuda.memory._record_memory_history(enabled=None)
 
 
 if __name__ == "__main__":
