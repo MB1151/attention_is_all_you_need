@@ -1,4 +1,4 @@
-# This file implements the positional encodings. It takes in the encoding size and dropout probability and creates
+# This file implements the positional encodings. It takes in the encoding size, dropout probability and creates
 # the positional encodings for the transformer model. Please refer to 'step_8_positional_encoding.ipynb' (link to the notebook) 
 # notebook to understand the details about each step in the below code.
 
@@ -29,7 +29,7 @@ class PositionalEncoding(nn.Module):
         positional_encoding_denominators = torch.exp(numerators_in_exponent * (-math.log(10000.0) / encoding_size))
         positional_encoding[:, 0::2] = torch.sin(positional_encoding_numerators * positional_encoding_denominators)
         positional_encoding[:, 1::2] = torch.cos(positional_encoding_numerators * positional_encoding_denominators)
-        # Refer to understanding_tensor_manipulations_part_1.ipynb notebook (link to the notebook) to
+        # Refer to understanding_tensor_manipulations_part_1.ipynb notebook (add link to the notebook) to
         # understand more about unsqueeze operation in pytorch.
         # In transformer model, we receive 3D tensors as input to this module. Each 1D tensor
         # in the last dimension is an embedding for the token. Each 2D tensor is a sentence.
@@ -45,21 +45,21 @@ class PositionalEncoding(nn.Module):
         """Adds the positional encodings to the input tensor.
         Args:
             input (Tensor): The input tensor containing the embeddings of the tokens.
-                            shape: [batch_size, sentence_length, d_model]
+                            shape: [batch_size, sequence_length, d_model]
 
         Returns:
             Tensor: Input with the positional encodings added to it.
-                    shape: [batch_size, sentence_length, d_model]
+                    shape: [batch_size, sequence_length, d_model]
         """
-        # Refer to understanding_tensor_manipulations_part_5.ipynb notebook (link to the notebook) to 
+        # Refer to understanding_tensor_manipulations_part_5.ipynb notebook (add link to the notebook) to 
         # understand more about broadcasting in python.
-        # The input tensor is a 3D tensor of shape (batch_size, sentence_length, encoding_size).
+        # The input tensor is a 3D tensor of shape (batch_size, sequence_length, encoding_size).
         # We add (uses broadcasting) the positional encoding to the input tensor to get the final tensor.
-        # positional_encoding: (1, max_len, encoding_size) --> (1, sentence_length, encoding_size) 
-        #       -- Extracts the positional encodings for the sentence_length from the positional_encoding 
+        # positional_encoding: (1, max_len, encoding_size) --> (1, sequence_length, encoding_size) 
+        #       -- Extracts the positional encodings for the sequence_length from the positional_encoding 
         #          tensor.
-        # (batch_size, sentence_length, encoding_size) --> input
-        # (batch_size, sentence_length, encoding_size) --> Resultant tensor shape after broadcasting.
+        # (batch_size, sequence_length, encoding_size) --> input
+        # (batch_size, sequence_length, encoding_size) --> Resultant tensor shape after broadcasting.
         # requires_grad_(False) is not needed since the positional encoding is already registered
         # as a Buffer and not a trainable parameter. It is just included for clarity.
         input = input + self.positional_encoding[:, :input.size(1)].requires_grad_(False)

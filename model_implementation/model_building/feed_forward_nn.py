@@ -10,7 +10,7 @@ class FeedForwardNN(nn.Module):
         super().__init__()
         self.linear_layer_1 = nn.Linear(in_features=d_model, out_features=d_feed_forward)
         self.linear_layer_2 = nn.Linear(in_features=d_feed_forward, out_features=d_model)
-        self.dropout_layer = nn.Dropout(p=dropout_prob)
+        self.dropout_layer = nn.Dropout(p=dropout_prob, inplace=False)
 
     def forward(self, input: Tensor) -> Tensor:
         """Passes the input through the Feed Forward Neural Network and returns the output 

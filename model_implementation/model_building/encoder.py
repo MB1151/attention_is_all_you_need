@@ -1,6 +1,6 @@
 # This file implements the Encoder in the Transformer model. The Encoder is a stack of N=6 identical EncoderLayers.
-# Refer to 'step_12_encoder.ipynb' (link to the notebook) notebook for a detailed explanation of each line of code 
-# in this file.
+# Refer to 'step_12_encoder.ipynb' (add link to the notebook) notebook for a detailed explanation of each line of
+# code in this file.
 
 from model_implementation.model_building.feed_forward_nn import FeedForwardNN
 from model_implementation.model_building.multi_headed_attention import MultiHeadedAttention
@@ -13,7 +13,7 @@ from typing import Optional
 logger = get_logger(__name__)
 
 # The MultiHeadedAttention (self_attention here) and FeedForward modules are also common (common meaning they 
-# have the same implementation and instantiation mechanism and not that they share weights) to the DecoderLayer 
+# have the same implementation and instantiation mechanism and not that they share weights) to the DecoderLayer.
 # Hence, we create them in a common way at the top level and pass them as arguments to the EncoderLayer and 
 # DecoderLayer classes. Passing them as arguments is more of a design choice than a necessity. Since 
 # EncodeLayer is a common abstraction that can act on any kind of layers, it is reasonable to create encoder 

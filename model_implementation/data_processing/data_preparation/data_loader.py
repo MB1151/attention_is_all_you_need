@@ -123,9 +123,6 @@ def __length_aware_collate_fn(batch: List[Dict],
         encoded_tgt_sentence = torch.cat([sos_tensor, torch.tensor(telugu_tokenizer.encode(tgt_sentence), dtype=torch.int64), eos_tensor], dim=0)
         processed_src_sentences.append(encoded_src_sentence)
         processed_tgt_sentences.append(encoded_tgt_sentence)
-    # # find the maximum length (max_len) of the sentences in the batch so that sentences are padded (if needed) to get all the
-    # # sentences to the same length i.e., max_len.
-    # max_len = max(max(src_ids.size(0) for src_ids in processed_src_sentences), max(tgt_ids.size(0) for tgt_ids in processed_tgt_sentences))
     # Finds the maximum length of the src_sequences in the batch so that src sequences are padded to get all the sequences
     # to the same length i.e., max_src_seq_len.
     max_src_seq_len = max(src_ids.size(0) for src_ids in processed_src_sentences)

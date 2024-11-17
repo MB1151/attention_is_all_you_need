@@ -1,6 +1,6 @@
 # This file implements Label Smoothing which is a regularization technique used to prevent the model from
-# overfitting to the training data. Refer to 'step_16_label_smoothing.ipynb' (link to the notebook) for a
-# detailed explanation of each line of code in this file.
+# overfitting to the training data. Refer to 'step_16_label_smoothing.ipynb' (add link to the notebook) 
+# for a detailed explanation of each line of code in this file.
 
 from model_implementation.utils.constants import DEVICE_CPU, SMOOTHING_PROB
 from model_implementation.utils.logger import get_logger
@@ -33,24 +33,24 @@ class LabelSmoothing(nn.Module):
                               vocab) for each token in the batch. An example target tensor for a batch of 2 sentences
                               each with 8 tokens and 6 possible classes for prediction (including the padding token)
                               would be: [[0, 3, 4, 5, 5, 1, 2, 2], [1, 5, 3, 3, 4, 0, 0, 2]]
-                              SHAPE: [batch_size, seq_len - 1]
+                              SHAPE: [batch_size, tgt_seq_len - 1]
 
         Returns:
             Tensor: A smoothed probability distribution (1D tensor) for each target token in the batch.
-                    SHAPE: [batch_size, seq_len - 1, vocab_size]                    
+                    SHAPE: [batch_size, tgt_seq_len - 1, vocab_size]                    
         """
         logger.debug(f"POINT 0 -- device: {self.device}")
-        # The above description showing the shape as (seq_len - 1) is because the first token is removed from the
+        # The above description showing the shape as (tgt_seq_len - 1) is because the first token is removed from the
         # target tensor while calculating the loss. 'tgt_seq_len' variable here is the number of tokens in each 
-        # target sentence in the batch which is equal to (seq_len - 1) where 'seq_len' is the number of tokens in 
-        # the input src sentence and tgt sentence before manipulating them by removing tokens. Don't get confused 
-        # with the variable naming. Just ignore this explanation if it is confusing.
+        # target sequence in the batch before we removed the first token to form the expected decoder output. 
+        # Don't get confused with the variable naming. Just ignore this explanation if it is confusing.
         batch_size, tgt_seq_len = targets.shape
         # Creating a tensor that will hold the smoothed probabilities for each target token in all the sentences.
         smoothed_probs = torch.zeros(size=(batch_size, tgt_seq_len, self.vocab_size), dtype=torch.float32, device=self.device)
         logger.debug(f"POINT 1 -- smoothed_probs device: {smoothed_probs.device}")
         # Filling the entire tensor with the smoothing probability. We will deal with the probabilities of the
-        # correct token and padding token later.
+        # correct token and padding token later. We use 'vocab_size - 2' because we don't want to assign the
+        # smoothing probability to the correct token and the padding token.
         smoothed_probs = smoothed_probs.fill_(value=self.smoothing / (self.vocab_size - 2))
         # Bringing the targets tensor to contain the same number of dimensions as the smoothed_probs tensor to 
         # use it with the 'scatter_' function. This is to replace the probabilities in the smoothed_probs tensor 

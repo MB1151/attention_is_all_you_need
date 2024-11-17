@@ -83,11 +83,13 @@ NUM_WARMUP_STEPS = 4000
 # Maximum number of tokens in a sentence that is every input to the model.
 MAX_INPUT_SEQUENCE_LENGTH = 150
 # Number of epochs to train the model.
-NUM_EPOCHS = 10
+NUM_EPOCHS = 2
 # Maximum number of tokens allowed in a translated sentence.
 MAX_INFERENCE_SEQ_LEN = 150
 # DEFAULT beam size to be used in the Beam Search algorithm.
 DEFAULT_BEAM_SIZE = 3
+# Number of batches after which the model parameters are updated.
+GRADIENT_UPDATE_FREQUENCY = 5
 
 
 # The maximum number of memory events that can be stored in a snapshot.

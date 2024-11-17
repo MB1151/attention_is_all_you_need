@@ -3,9 +3,9 @@
 # dataset from disk, wraps the dataset in a pytorch Dataset, gets the tokenizers for the English and
 # Telugu languages, and trains the translation model.
 
-import re
 from model_implementation.data_processing.data_preparation.dataset_wrapper import DatasetWrapper
 from model_implementation.data_processing.data_preparation.data_helpers import get_tokenizers, load_data_from_disk
+from model_implementation.data_processing.tokenization.base_tokenizer import BaseTokenizer
 from model_implementation.model_training.model_trainer import train_model
 from model_implementation.utils.config import LOG_LEVEL
 from model_implementation.utils.constants import (
@@ -71,8 +71,6 @@ def train_translation_model(device: str,
                                                              retrain_tokenizers=retrain_tokenizers,
                                                              max_en_vocab_size=max_en_vocab_size,
                                                              max_te_vocab_size=max_te_vocab_size)
-        logger.debug(f"English tokenizer: {english_tokenizer}")
-        logger.debug(f"Telugu tokenizer: {telugu_tokenizer}")
         pad_token_id = english_tokenizer.get_token_id(PAD_TOKEN)
         # Train the translation model.
         trained_model, model_state = train_model(num_epochs=NUM_EPOCHS, 

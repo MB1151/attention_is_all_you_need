@@ -10,11 +10,28 @@ import torch
 
 # Creates a copy (deepcopy) of the module and returns ModuleList containing the copies.
 def clone_module(module: nn.Module, num_clones: int) -> nn.ModuleList:
+    """Creates a deep copy of the module and returns a ModuleList containing the copies.
+
+    Args:
+        module (nn.Module): nn.Module to be copied.
+        num_clones (int): Number of copies to be created.
+
+    Returns:
+        nn.ModuleList: Returns a ModuleList containing the copies of the module.
+    """
     return nn.ModuleList([copy.deepcopy(module) for _ in range(num_clones)])
 
 
 # Returns the absolute path if relative path wrt to the repository is provided.
 def get_absolute_path(relative_path: str) -> str:
+    """Returns the absolute path if the relative path with respect to the repository is provided.
+
+    Args:
+        relative_path (str): Relative path with respect to the repository.
+
+    Returns:
+        str: Returns the absolute path on the machine.
+    """
     # Please note that the implementation of this function depends on the placement of this file and
     # it might not work if this file is moved to a different location.
     cur_path = os.path.dirname(os.path.abspath(__file__))

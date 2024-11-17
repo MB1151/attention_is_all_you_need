@@ -1,6 +1,6 @@
 # This file implements the learning rate schedule for the transformer model. The learning rate is increased 
 # linearly for the first warmup_steps, and then decreased exponentially for the rest of the training steps. 
-# Refer to 'step_18_learning_rates.ipynb' (link to the notebook) for a detailed explanation of how this 
+# Refer to 'step_18_learning_rates.ipynb' (add link to the notebook) for a detailed explanation of how this 
 # learning rate schedule works.
 
 from typing import Optional

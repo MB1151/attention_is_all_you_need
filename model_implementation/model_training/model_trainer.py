@@ -12,8 +12,9 @@ from model_implementation.model_training.learning_rate_schedule import rate
 from model_implementation.model_training.loss_computation import LossCompute
 from model_implementation.model_training.model_validator import validate_model
 from model_implementation.utils.constants import (
-    BATCH_SIZE, BETA_1, BETA_2, DROPOUT_PROB, D_FEED_FORWARD, D_MODEL, EPSILON, INITIAL_LEARNING_RATE, 
-    MAX_INPUT_SEQUENCE_LENGTH, NUM_LAYERS, NUM_HEADS, NUM_WARMUP_STEPS, NUM_WORKERS, SMOOTHING_PROB
+    BATCH_SIZE, BETA_1, BETA_2, DROPOUT_PROB, D_FEED_FORWARD, D_MODEL, EPSILON, GRADIENT_UPDATE_FREQUENCY,
+    INITIAL_LEARNING_RATE, MAX_INPUT_SEQUENCE_LENGTH, NUM_LAYERS, NUM_HEADS, NUM_WARMUP_STEPS, NUM_WORKERS, 
+    SMOOTHING_PROB
 )
 from model_implementation.utils.helpers import get_full_model_path_from_name, load_model_from_disk, save_model_to_disk
 from model_implementation.utils.logger import get_logger
@@ -73,7 +74,7 @@ def train_model_on_epoch(machine_translation_model: MachineTranslationModel,
             logger.debug(f"Skipping batch {num_batches_processed} as the sequence length is greater than the maximum sequence length.")
             num_batches_skipped += 1
             continue
-        # Batch size is a relatively small number (32). So, to avoid spamming, we print the updates once
+        # Batch size is a relatively small number (64). So, to avoid spamming, we print the updates once
         # for every 100 batches.
         if num_batches_processed % 100 == 0:
             logger.info(f"Processing batch number: {num_batches_processed}")
@@ -96,17 +97,27 @@ def train_model_on_epoch(machine_translation_model: MachineTranslationModel,
                             num_non_pad_tokens=int(batch.non_pad_tokens.item()))
         # Computes the gradients wrt to the loss.
         loss.backward()
-        # Updates the weights with the calculated gradients.
-        optimizer.step()
+        # Update the gradients only after a certain number of steps. Gradient accumulation has the following advantages:
+        # 1) It allows the model to train on larger batch sizes than the GPU memory can handle.
+        # 2) It allows the model to train on smaller batch sizes than the GPU memory can handle but still get the
+        #    benefits of training on larger batch sizes.
+        # 3) Memory is not wasted by storing the gradients for each batch. The gradients are updated only after a
+        #    certain number of batches.
+        if num_batches_processed % GRADIENT_UPDATE_FREQUENCY == 0:
+            # Updates the weights with the calculated gradients.
+            optimizer.step()
+            # zero out the gradients after the update so that the memory is wiped clean at the end of the epoch.
+            optimizer.zero_grad(set_to_none=True)
         # Updates the learning rate. Notice that we are updating the learning rate after every batch of training
         # and not after every epoch. So, the 'epoch' value in lr_scheduler is not the same as the epoch in general
         # which is the number of steps the entrire training set is trained on.
         lr_scheduler.step()
-        # zero out the gradients after the update so that the memory is wiped clean at the end of the epoch.
-        optimizer.zero_grad(set_to_none=True)
         # Update the number of batches processed.
         num_batches_processed += 1
         total_loss += (loss.item() * int(batch.non_pad_tokens.item())) 
+    # Update the weights with the gradients for the last few batches.
+    optimizer.step()
+    optimizer.zero_grad(set_to_none=True)
     # Time at which the training of the model on the current epoch ended.
     end_time = time.time()
     epoch_training_time = (end_time - start_time) / 60
@@ -152,6 +163,8 @@ def train_model(num_epochs: int,
     # Get the vocabulary sizes for the source and target languages.
     src_vocab_size = english_tokenizer.get_vocab_size()
     tgt_vocab_size = telugu_tokenizer.get_vocab_size()
+    logger.info(f"Source (English) vocabulary size: {src_vocab_size}")
+    logger.info(f"Target (Telugu) vocabulary size: {tgt_vocab_size}")
     # Initialize the Machine Translation model.
     translation_model = MachineTranslationModel(d_model=D_MODEL, 
                                                 d_feed_forward=D_FEED_FORWARD,

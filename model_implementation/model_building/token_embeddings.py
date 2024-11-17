@@ -18,7 +18,7 @@
 #
 # This blog (https://towardsdatascience.com/how-to-code-the-transformer-in-pytorch-24db27c8f9ec) just says that this 
 # scaling is done to magnify the contribution of word embeddings when word embeddings are added to the positional 
-# encodings. This explanation makes sense theoretically true, however, I have seen people mentioning on the internet 
+# encodings. This explanation makes sense theoretically, however, I have seen people mentioning on the internet 
 # that scaling did not have any visible impact on their models (To be verified).
 #
 # Please refer to step_6_word_embeddings.ipynb (link to the notebook) notebook to understand details about each 

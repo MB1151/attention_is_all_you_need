@@ -1,7 +1,7 @@
 # This file contains the implementation of the SubLayerWrapper class. This class is a wrapper around the
 # MultiHeadedAttention and PositionwiseFeedForward classes. It applies the operation on the input, applies
 # dropout, adds the input back to the transformed input, does normalization and returns the output. Please
-# refer to 'step_12_encoder.ipynb' (link to the notebook) notebook for a detailed explanation of
+# refer to 'step_12_encoder.ipynb' (add link to the notebook) notebook for a detailed explanation of
 # how this class works.
 
 
@@ -19,7 +19,7 @@ class SubLayerWrapper(nn.Module):
             dropout_prob (float): probability with which nodes can be dropped.
         """
         super().__init__()
-        self.dropout = nn.Dropout(dropout_prob)
+        self.dropout = nn.Dropout(dropout_prob, inplace=False)
         self.layer_norm = nn.LayerNorm(d_model)
 
     def forward(self, input: Tensor, sublayer: nn.Module) -> Tensor:

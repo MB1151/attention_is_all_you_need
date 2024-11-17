@@ -20,16 +20,16 @@ class TokenPredictor(nn.Module):
 
         Args:
             decoder_output (Tensor): Output of the Decoder.
-                                     SHAPE: [batch_size, seq_len - 1, d_model]
+                                     SHAPE: [batch_size, tgt_seq_len, d_model]
 
         Returns:
             Tensor: Log probability distribution over the vocabulary. 
-                    SHAPE: [batch_size, seq_len - 1, vocab_size]
+                    SHAPE: [batch_size, tgt_seq_len, vocab_size]
         """
         # Project the decoder output to the vocab_size dimensional space.
         logits = self.linear(decoder_output)
         # Convert the logits to a probability distribution over the vocabulary. All the entires in the
         # output tensor are negative since we are using log softmax. The log softmax is used to make
-        # the training more numerically stable. However, the maximum value is still the same as the 
-        # maximum value of the original softmax output.
+        # the training more numerically stable. However, the maximum value in log_softmax is still the 
+        # same as the maximum value of the general softmax output.
         return self.log_softmax(logits)
