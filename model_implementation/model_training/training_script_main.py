@@ -5,7 +5,6 @@
 
 from model_implementation.data_processing.data_preparation.dataset_wrapper import DatasetWrapper
 from model_implementation.data_processing.data_preparation.data_helpers import get_tokenizers, load_data_from_disk
-from model_implementation.data_processing.tokenization.base_tokenizer import BaseTokenizer
 from model_implementation.model_training.model_trainer import train_model
 from model_implementation.utils.config import LOG_LEVEL
 from model_implementation.utils.constants import (
@@ -56,15 +55,15 @@ def train_translation_model(device: str,
         # Time in seconds elapsed since the beginning of the epoch (Not training epoch but the standard point from which time is calculated).
         # Time at which the model training started.
         start_time = time.time()
-        logger.info(f"Loading the following dataset for training: {TRAIN_DATASET_PATH}")
+        logger.info(f"Loading the following dataset for training: {DEBUG_DATASET_PATH}")
         # Load the train dataset from disk.
-        train_dataset: datasets.arrow_dataset.Dataset = load_data_from_disk(dataset_relative_path=TRAIN_DATASET_PATH)
+        train_dataset: datasets.arrow_dataset.Dataset = load_data_from_disk(dataset_relative_path=DEBUG_DATASET_PATH)
         # Wrap the hugging face dataset in a pytorch Dataset to be able to use with pytorch DataLoader.
-        translation_dataset = DatasetWrapper(hf_dataset=train_dataset, dataset_name="TRAIN_DATASET")
+        translation_dataset = DatasetWrapper(hf_dataset=train_dataset, dataset_name="DEBUG_DATASET")
         # Load the validation dataset from disk.
-        validation_hf_dataset: datasets.arrow_dataset.Dataset = load_data_from_disk(dataset_relative_path=VALIDATION_DATASET_PATH)
+        validation_hf_dataset: datasets.arrow_dataset.Dataset = load_data_from_disk(dataset_relative_path=DEBUG_DATASET_PATH)
         # Wrap the hugging face dataset in a pytorch Dataset to be able to use with pytorch DataLoader.
-        validation_dataset = DatasetWrapper(hf_dataset=validation_hf_dataset, dataset_name="VALIDATION_DATASET")
+        validation_dataset = DatasetWrapper(hf_dataset=validation_hf_dataset, dataset_name="DEBUG_DATASET")
         # Get the tokenizers for the English and Telugu languages.
         english_tokenizer, telugu_tokenizer = get_tokenizers(dataset_relative_path=FULL_EN_TE_DATASET_PATH, 
                                                              tokenizer_type=tokenizer_type,
@@ -102,7 +101,7 @@ def train_translation_model(device: str,
             logger.error(f"Failed to capture memory snapshot {e}")
         if device == DEVICE_GPU:
             # Stop recording memory snapshot history.
-            torch.cuda.memory._record_memory_history(enabled=None)
+            torch.cuda.memory._record_memory_history(enabled=None)  # type: ignore
 
 
 if __name__ == "__main__":

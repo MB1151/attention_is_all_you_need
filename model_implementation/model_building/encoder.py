@@ -37,8 +37,8 @@ class EncoderLayer(nn.Module):
         """This method is the forward pass of the EncoderLayer class.
 
         Args:
-            input (Tensor): Source sentence provided as input to the EncoderLayer. These are the embeddings of the source 
-                            sentence for the first EncoderLayer.
+            input (Tensor): Source sequences provided as input to the EncoderLayer. These are the embeddings of the source 
+                            sequences for the first EncoderLayer.
                             SHAPE: [batch_size, seq_len, d_model]
             mask (Tensor): Boolean mask to be applied to the input during attention scores calculation.
                            SHAPE: [batch_size, 1, seq_len, seq_len]

@@ -65,24 +65,23 @@ class BPETokenizer(BaseTokenizer):
         return tokenizer
 
     
-    def save_tokenizer_to_disk(self, directory_to_save: str):
+    def save_tokenizer_to_disk(self, directory: str):
         """Saves the trained BPE tokenizer to the disk.
 
         Args:
-            directory_to_save (str): Directory where the tokenizer should be saved.
+            directory (str): Directory (relative to the repository root) where the tokenizer should be saved.
         """
-        absolute_directory_path = get_absolute_path(relative_path=directory_to_save)
+        absolute_directory_path = get_absolute_path(relative_path=directory)
         self.tokenizer.save_model(absolute_directory_path)
 
 
-    def load_trained_tokenizer_from_disk(self, saved_tokenizer_directory: str):
+    def load_trained_tokenizer_from_disk(self, directory: str):
         """Loads the trained BPE tokenizer from the disk.
 
         Args:
-            saved_tokenizer_directory (str): Directory path (relative to the repository root) where the trained 
-                                             tokenizer is saved.
+            directory (str): Directory (relative to the repository root) where the trained tokenizer is saved.
         """
-        absolute_directory_path = get_absolute_path(relative_path=saved_tokenizer_directory)
+        absolute_directory_path = get_absolute_path(relative_path=directory)
         self.tokenizer = ByteLevelBPETokenizer.from_file(vocab_filename=f"{absolute_directory_path}/vocab.json", 
                                                          merges_filename=f"{absolute_directory_path}/merges.txt")
         

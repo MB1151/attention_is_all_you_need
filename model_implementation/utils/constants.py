@@ -8,21 +8,29 @@
 # CONSTANTS REALTED TO THE DATASETS.
 # Path at which the smaller datasets used by the model are stored.
 AI4_BHARAT_DATA_PATH = "Data/AI4Bharat"
-# Path at which the data to train the model is stored.
+# Path at which the data to train the model is stored. Contains 250000 examples.
 TRAIN_DATASET_PATH = "Data/AI4Bharat/train_dataset"
+# Path at which the a larger dataset to train the model is stored. Contains 500000 examples.
+LARGE_TRAIN_DATASET_PATH = "Data/AI4Bharat/large_train_dataset"
 # Path at which the data to validate the model is stored.
 VALIDATION_DATASET_PATH = "Data/AI4Bharat/validation_dataset"
 # Path to a very small dataset that can be used for debuggung purposes.
 DEBUG_DATASET_PATH = "Data/AI4Bharat/debug_dataset"
+# Path at which the data to test the model is stored. This is used to measure the quality of the model.
+TEST_DATASET_PATH = "Data/AI4Bharat/test_dataset"
 # Path to the full translation dataset (English - Telugu).
 FULL_EN_TE_DATASET_PATH = "Data/AI4Bharat/full_en_te_dataset"
 
 
 # CONSTANTS RELATED TO THE PRODUCED ARTIFACTS BY THE MODEL.
 # Path at which trained bpe english tokenizer is saved.
-BPE_ENGLISH_TOKENIZER_SAVE_PATH = "Data/trained_models/tokenizers/bpe_english_tokenizer"
+BPE_ENGLISH_TOKENIZER_SAVE_PATH = "Data/trained_models/tokenizers/bpe/bpe_english_tokenizer"
 # Path at which trained bpe telugu tokenizer is saved.
-BPE_TELUGU_TOKENIZER_SAVE_PATH = "Data/trained_models/tokenizers/bpe_telugu_tokenizer"
+BPE_TELUGU_TOKENIZER_SAVE_PATH = "Data/trained_models/tokenizers/bpe/bpe_telugu_tokenizer"
+# Path at which trained spacy english tokenizer is saved.
+SPACY_ENGLISH_TOKENIZER_SAVE_PATH = "Data/trained_models/tokenizers/spacy/spacy_english_tokenizer"
+# Path at which trained spacy telugu tokenizer is saved.
+SPACY_TELUGU_TOKENIZER_SAVE_PATH = "Data/trained_models/tokenizers/spacy/spacy_telugu_tokenizer"
 # Path at which the trained model checkpoints are saved during the training process.
 MODEL_CHECK_POINT_PATH = "Data/trained_models/translation_models"
 

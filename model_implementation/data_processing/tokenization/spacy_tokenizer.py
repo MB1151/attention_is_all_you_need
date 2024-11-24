@@ -3,10 +3,12 @@
 
 from model_implementation.data_processing.tokenization.base_tokenizer import BaseTokenizer
 from model_implementation.utils.constants import MAX_VOCAB_SIZE, UNK_TOKEN
+from model_implementation.utils.helpers import get_absolute_path
 from torchtext.vocab import build_vocab_from_iterator
 from typing import Callable, List, Optional
 
 import datasets
+import pickle
 import spacy
 
 
@@ -73,3 +75,24 @@ class SpacyTokenizer(BaseTokenizer):
                                                special_first=True, 
                                                max_tokens=self.max_vocab_size)
         self.vocab.set_default_index(self.vocab[UNK_TOKEN])
+    
+    def save_tokenizer_to_disk(self, directory: str):
+        """Saves the trained BPE tokenizer to the disk.
+
+        Args:
+            directory (str): directory (relative to the repository root) where the vocabulary should be saved.
+        """
+        absolute_directory_path = get_absolute_path(relative_path=directory)
+        with open(f"{absolute_directory_path}/tokenizer.pkl", 'wb') as file_obj:
+            pickle.dump(self.vocab, file_obj)
+
+    def load_trained_tokenizer_from_disk(self, directory: str):
+        """Loads the trained BPE tokenizer from the disk.
+
+        Args:
+            directory (str): directory (relative to the repository root) where the vocabulary is saved.
+        """
+        absolute_directory_path = get_absolute_path(relative_path=directory)
+        with open(f"{absolute_directory_path}/tokenizer.pkl", 'rb') as file_obj:
+            en_vocab_loaded = pickle.load(file_obj)
+        return en_vocab_loaded

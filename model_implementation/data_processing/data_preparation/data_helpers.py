@@ -4,7 +4,11 @@ from datasets import load_from_disk
 from model_implementation.data_processing.tokenization.base_tokenizer import BaseTokenizer
 from model_implementation.data_processing.tokenization.bpe_tokenizer import BPETokenizer
 from model_implementation.data_processing.tokenization.spacy_tokenizer import SpacyTokenizer
-from model_implementation.utils.constants import BPE_ENGLISH_TOKENIZER_SAVE_PATH, BPE_TELUGU_TOKENIZER_SAVE_PATH, ENGLISH_VOCAB_SIZE, TELUGU_VOCAB_SIZE
+from model_implementation.utils.constants import (
+    BPE_ENGLISH_TOKENIZER_SAVE_PATH, BPE_TELUGU_TOKENIZER_SAVE_PATH, ENGLISH_VOCAB_SIZE, 
+    SPACY_ENGLISH_TOKENIZER_SAVE_PATH, SPACY_TELUGU_TOKENIZER_SAVE_PATH, 
+    TELUGU_VOCAB_SIZE
+)
 from model_implementation.utils.helpers import get_absolute_path
 from model_implementation.utils.logger import get_logger
 from typing import Optional, Tuple
@@ -80,27 +84,35 @@ def get_tokenizers(dataset_relative_path: str,
     """
     train_dataset = load_data_from_disk(dataset_relative_path=dataset_relative_path)
     if tokenizer_type == "spacy":
-        # Always train the spacy tokenizers. This is because I haven't found any easy way to save and load the 
-        # 'torchtext.vocab.Vocab' to and from disk.
         english_tokenizer = SpacyTokenizer(language="english")
-        train_tokenizer(dataset=train_dataset, tokenizer=english_tokenizer, max_vocab_size=max_en_vocab_size)
         telugu_tokenizer = SpacyTokenizer(language="telugu")
-        train_tokenizer(dataset=train_dataset, tokenizer=telugu_tokenizer, max_vocab_size=max_te_vocab_size)
+        if retrain_tokenizers == False:
+            logger.info(f"Loading pre-trained tokenizers from disk")
+            # Load the trained tokenizers from the disk if retrain_tokenizers is False.
+            english_tokenizer.load_trained_tokenizer_from_disk(directory=SPACY_ENGLISH_TOKENIZER_SAVE_PATH)
+            telugu_tokenizer.load_trained_tokenizer_from_disk(directory=SPACY_TELUGU_TOKENIZER_SAVE_PATH)
+        else:
+            logger.info(f"Retraining Tokenizers")
+            # Train the tokenizers on the dataset if retrain_tokenizers is True.
+            train_tokenizer(dataset=train_dataset, tokenizer=english_tokenizer, max_vocab_size=max_en_vocab_size)
+            english_tokenizer.save_tokenizer_to_disk(directory=SPACY_ENGLISH_TOKENIZER_SAVE_PATH)
+            train_tokenizer(dataset=train_dataset, tokenizer=telugu_tokenizer, max_vocab_size=max_te_vocab_size)
+            telugu_tokenizer.save_tokenizer_to_disk(directory=SPACY_TELUGU_TOKENIZER_SAVE_PATH)
     elif tokenizer_type == "bpe":
         english_tokenizer = BPETokenizer(language="english")
         telugu_tokenizer = BPETokenizer(language="telugu")
         if retrain_tokenizers == False:
             logger.info(f"Loading pre-trained tokenizers from disk")
             # Load the trained tokenizers from the disk if retrain_tokenizers is False.
-            english_tokenizer.load_trained_tokenizer_from_disk(saved_tokenizer_directory=BPE_ENGLISH_TOKENIZER_SAVE_PATH)
-            telugu_tokenizer.load_trained_tokenizer_from_disk(saved_tokenizer_directory=BPE_TELUGU_TOKENIZER_SAVE_PATH)
+            english_tokenizer.load_trained_tokenizer_from_disk(directory=BPE_ENGLISH_TOKENIZER_SAVE_PATH)
+            telugu_tokenizer.load_trained_tokenizer_from_disk(directory=BPE_TELUGU_TOKENIZER_SAVE_PATH)
         else:
             logger.info(f"Retraining Tokenizers")
             # Train the tokenizers on the dataset if retrain_tokenizers is True.
             train_tokenizer(dataset=train_dataset, tokenizer=english_tokenizer, max_vocab_size=max_en_vocab_size)
-            english_tokenizer.save_tokenizer_to_disk(directory_to_save=BPE_ENGLISH_TOKENIZER_SAVE_PATH)
+            english_tokenizer.save_tokenizer_to_disk(directory=BPE_ENGLISH_TOKENIZER_SAVE_PATH)
             train_tokenizer(dataset=train_dataset, tokenizer=telugu_tokenizer, max_vocab_size=max_te_vocab_size)
-            telugu_tokenizer.save_tokenizer_to_disk(directory_to_save=BPE_TELUGU_TOKENIZER_SAVE_PATH)
+            telugu_tokenizer.save_tokenizer_to_disk(directory=BPE_TELUGU_TOKENIZER_SAVE_PATH)
     else:
         raise ValueError(f"Tokenizer type {tokenizer_type} is not supported.")
     return english_tokenizer, telugu_tokenizer

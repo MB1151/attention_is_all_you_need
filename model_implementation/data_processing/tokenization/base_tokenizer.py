@@ -49,6 +49,7 @@ class BaseTokenizer(ABC):
         """Returns the encoded token ids for the given text."""
         pass
 
+    @abstractmethod
     def decode(self, token_ids: List[int]) -> str:
         """Converts the series of token ids back to the original text.
 
@@ -70,4 +71,22 @@ class BaseTokenizer(ABC):
     @abstractmethod
     def get_vocab_size(self) -> int:
         """Returns the size of the vocabulary i.e., the number of tokens in the vocabulary."""
+        pass
+
+    @abstractmethod
+    def save_tokenizer_to_disk(self, directory: str):
+        """Saves the trained BPE tokenizer to the disk.
+
+        Args:
+            directory (str): Directory (relative to the repository root) where the tokenizer should be saved.
+        """
+        pass
+
+    @abstractmethod
+    def load_trained_tokenizer_from_disk(self, directory: str):
+        """Loads the trained BPE tokenizer from the disk.
+
+        Args:
+            directory (str): Directory (relative to the repository root) where the trained tokenizer is saved.
+        """
         pass
