@@ -1,4 +1,4 @@
-# Implementation Of Attention Is All You Need Paper
+# Implementation Of Attention Is All You Need Paper [In Progress]
 
 This repository contains Pytorch implementation of the **English - Telugu** translation model based on the first transformer architecture released in the *Attention Is All You Need* paper (<u>[Link to the paper](https://arxiv.org/abs/1706.03762)</u>).
 
@@ -40,6 +40,7 @@ This repository is intended for anyone looking to learn about transformers in de
 - [Data Preparation](#data-preparation) &rarr; Resources necessary to understand the data preparation stage.
 - [Model Training](#model-training) &rarr; Resources necessary to understand the translation model training process.
 - [Model Inference](#model-inference) &rarr; Resources necessary to understand the translation model inference process.
+- [Model Quality](#model-quality) &rarr; Resources necessary to understand the quality measurement of a translation model.
 - [Implementation](#implementation) &rarr; Resources necessary to understand the details required to implement the model.
 
 ### Core Concepts
@@ -211,6 +212,23 @@ Greedy search selects the token with the maximum probability as the output of th
 - <u>[Video](https://www.youtube.com/watch?v=gb__z7LlN_4)</u> explains possible improvements to Beam Search &rarr; *By Andrew NG*
 - <u>[Video](https://www.youtube.com/watch?v=ZGUZwk7xIwk)</u> explains how error analysis is performed on Beam Search &rarr; *By Andrew NG*
 
+
+### Model Quality
+
+#### <u>BLEU score</u>
+
+BLEU score is a widely used metric to measure the quality of a machine translation model.
+
+- <u>[Video](https://youtu.be/DejHQYAGb7Q?si=no3A70rxzxnFywXd)</u> gives an intuitive explanation of BLEU score and how to calculate it &rarr; *By Andrew NG*
+- <u>[Blog](https://blog.modernmt.com/understanding-mt-quality-bleu-scores/)</u> explains the advantages and disadvantages of BLEU score &rarr; *By Kirti Vashee*
+- <u>[Blog](https://towardsdatascience.com/foundations-of-nlp-explained-bleu-score-and-wer-metrics-1a5ba06d812b)</u> explains the mathematics behind BLEU score intuitively &rarr; *By Ketan Doshi*
+- <u>[Google doc](https://docs.google.com/document/d/1OPldZW_9NbG8JLywnqJ91yJV9olP9npG8FJG9csnpwc/edit?tab=t.0#bookmark=id.cbldv5yohjf9)</u> explains why BLEU score is always in the range [0, 1] &rarr; *By Maneesh Babu Adhikari*
+- <u>[Google doc](https://docs.google.com/document/d/1OPldZW_9NbG8JLywnqJ91yJV9olP9npG8FJG9csnpwc/edit?tab=t.0#bookmark=id.2uvpt29pxts9)</u> explains how BLEU score is calculated for a corpus of translation as opposed to a single translation &rarr; *By Maneesh Babu Adhikari*
+- <u>[Google doc](https://docs.google.com/document/d/1OPldZW_9NbG8JLywnqJ91yJV9olP9npG8FJG9csnpwc/edit?tab=t.0#bookmark=id.nfzxm12zp3bu)</u> runs through an example corpus and shows how BLEU score is calculated &rarr; *By Maneesh Babu Adhikari*
+
+
+
+
 ### Implementation
 
 The above resources help us understand the model architecture and necessary dependencies in detail. However, there are still several gaps wrt the implementation details. This section presents the resources that aid in the implementation of the translation model.
@@ -316,6 +334,10 @@ Here's a short overview of what you'll find inside:
     * Combines all the moving parts to create a module to train the translation model.
 - `step_20_beam_search.ipynb`
     * Explains how Beam Search is used to predict the model output during inference.
+- `step_21_model_inference.ipynb`
+    * Combines all the moving parts to create a module for inference i.e., to translate English text to Telugu.
+- `step_22_bleu_score.ipynb`
+    * Explains how BLEU score is calculated using existing libraries to evaluate the quality of translation model.
 
 
 ### Deep Dive into `Data/`
