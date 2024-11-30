@@ -30,8 +30,8 @@ def construct_attention_heads(queries: Tensor,
         queries (Tensor): [batch_size, num_heads, seq_len, d_k]
         keys (Tensor): [batch_size, num_heads, seq_len, d_k]
         values (Tensor): [batch_size, num_heads, seq_len, d_k]
-        mask (Optional[Tensor]): [batch_size, 1, 1, seq_len] if the mask is for the source sequences.
-                                 [batch_size, 1, seq_len - 1, seq_len - 1] if the mask is for the target sequences.
+        mask (Optional[Tensor]): [batch_size, 1, 1, src_seq_len] if the mask is for the source sequences.
+                                 [batch_size, 1, tgt_seq_len, tgt_seq_len] if the mask is for the target sequences.
                                  Defaults to None.
         dropout_layer (Optional[nn.Module], optional): probability with which the values are dropped on dropout 
                                                        layer. Defaults to None.
@@ -92,7 +92,7 @@ class MultiHeadedAttention(nn.Module):
                            mask: [batch_size, 1, 1, src_seq_len] if the mask is for the source sequences.
                            mask: [batch_size, 1, tgt_seq_len, tgt_seq_len] if the mask is for the target sequences. 
                            Note that src_seq_len and tgt_seq_len are the number of tokens in the source and target sequences
-                           respectively and they are likely to be different.
+                           respectively and they are likely different.
 
         Returns:
             Mutli-Headed Attention Output: Output of the Multi-Headed Attention layer. Generates one output vector 
@@ -104,7 +104,6 @@ class MultiHeadedAttention(nn.Module):
         # shape of queries, keys, values: [batch_size, seq_len, d_model]
         queries, keys, values = [linear_layer(input) for linear_layer, input in zip(self.linear_layers, (query_input, key_input, value_input))]
         batch_size = query_input.shape[0]
-        seq_len = query_input.shape[1]
         # Using '-1' in the view function is to infer the size of the dimension from the original tensor. This is important because
         # the 'seq_len' for the keys, values comes from Encoder output (i.e., src sequences) and the 'seq_len' for the queries comes
         # from decoder input (i.e., tgt sequences) in source attention. The src_sequence size and tgt_sequence size are likely 

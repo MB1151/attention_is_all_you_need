@@ -42,10 +42,12 @@ class MachineTranslationModel(nn.Module):
         self.src_embedding = Embeddings(vocab_size=src_vocab_size, embedding_dim=d_model)
         self.tgt_embedding = Embeddings(vocab_size=tgt_vocab_size, embedding_dim=d_model)
         # We have to create two instances of the PositionalEncoding since PositionalEncoding module has a Dropout layer
-        # in it which contains learnable parameters . We cannot share the same instance of the PositionalEncoding 
-        # module between the source and target embeddings.
+        # and is applied independently in both the cases.
         self.src_positional_encoding = PositionalEncoding(encoding_size=d_model, dropout_prob=dropout_prob, max_len=max_seq_len)
         self.tgt_positional_encoding = PositionalEncoding(encoding_size=d_model, dropout_prob=dropout_prob, max_len=max_seq_len)
+        # Note that multi_headed_attention, feed_forward_nn, encoder_layer and decoder_layer are not child modules of
+        # the MachineTranslationModel class. They are just variables that are used to create the child modules of the
+        # MachineTranslationModel class.
         multi_headed_attention = MultiHeadedAttention(num_heads=num_heads, d_model=d_model, dropout_prob=dropout_prob)
         feed_forward_nn = FeedForwardNN(d_model=d_model, d_feed_forward=d_feed_forward, dropout_prob=dropout_prob)
         encoder_layer = EncoderLayer(self_attention=copy.deepcopy(multi_headed_attention), 
@@ -57,6 +59,7 @@ class MachineTranslationModel(nn.Module):
                                      feed_forward=copy.deepcopy(feed_forward_nn), 
                                      d_model=d_model, 
                                      dropout_prob=dropout_prob)
+        # encoder, decoder and token_predictor are the child modules of the MachineTranslationModel class.
         self.encoder = Encoder(encoder_layer=encoder_layer, num_layers=num_layers)
         self.decoder = Decoder(decoder_layer=decoder_layer, num_layers=num_layers)
         self.token_predictor = TokenPredictor(d_model=d_model, tgt_vocab_size=tgt_vocab_size)
@@ -105,7 +108,7 @@ class MachineTranslationModel(nn.Module):
                           SHAPE: [batch_size, src_seq_len]
             src_mask (Tensor): Mask to be applied to the source sequences in each of the attention heads. Same mask will be 
                                applied to the sequence in all the attention heads.
-                               SHAPE: [batch_size, 1, src_seq_len, src_seq_len]
+                               SHAPE: [batch_size, 1, 1, src_seq_len]
 
         Returns:
             Tensor: Encoded source sequences. Each token in the source sequence is represented by a vector that encodes
@@ -114,8 +117,14 @@ class MachineTranslationModel(nn.Module):
         """
         # Get the embeddings for the source sentences.
         src_embeddings = self.src_embedding(src)
+        print(f"shape of src_embeddings: {src_embeddings.shape}")
+        print(f"src_embeddings: {src_embeddings}")
+        print("-" * 150)
         # Add the positional encodings to the embeddings.
         src_embeddings = self.src_positional_encoding(src_embeddings)
+        print(f"shape of src_embeddings after positional encoding: {src_embeddings.shape}")
+        print(f"src_embeddings after positional encoding: {src_embeddings}")
+        print("-" * 150)
         # Pass the source sentence through the encoder.
         encoded_src = self.encoder(input=src_embeddings, mask=src_mask)
         return encoded_src

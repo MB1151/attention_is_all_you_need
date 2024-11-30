@@ -39,12 +39,12 @@ class EncoderLayer(nn.Module):
         Args:
             input (Tensor): Source sequences provided as input to the EncoderLayer. These are the embeddings of the source 
                             sequences for the first EncoderLayer.
-                            SHAPE: [batch_size, seq_len, d_model]
+                            SHAPE: [batch_size, src_seq_len, d_model]
             mask (Tensor): Boolean mask to be applied to the input during attention scores calculation.
-                           SHAPE: [batch_size, 1, seq_len, seq_len]
+                           SHAPE: [batch_size, 1, 1, src_seq_len]
         Returns:
             Tensor: Output of the EncoderLayer.
-                    SHAPE: [batch_size, seq_len, d_model]
+                    SHAPE: [batch_size, src_seq_len, d_model]
         """
         # We are just saving the function call to the self_attention method in a variable and passing the
         # lambda function (contained within the variable) to the sublayer_wrappers[0] to execute it when 
@@ -67,13 +67,13 @@ class Encoder(nn.Module):
 
         Args:
             input (Tensor): Input to the Encoder i.e., embeddings of the tokenized src sequences.
-                            input: [batch_size, seq_len, d_model]
+                            input: [batch_size, src_seq_len, d_model]
             mask (Optional[Tensor], optional): Boolean mask to be applied during attention scores calculation.
-                                               mask: [batch_size, 1, seq_len, seq_len]. Defaults to None.
+                                               mask: [batch_size, 1, 1, src_seq_len]. Defaults to None.
                             
         Returns:
-            Tensor: Output of the Encoder i.e., encoded src sentences.
-                    output: [batch_size, seq_len, d_model]
+            Tensor: Output of the Encoder i.e., encoded src sequences.
+                    output: [batch_size, src_seq_len, d_model]
         """
         output = input
         for idx, encoder_layer in enumerate(self.encoder_layers):

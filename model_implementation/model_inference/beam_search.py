@@ -80,7 +80,7 @@ from model_implementation.data_processing.data_preparation.data_batching_and_mas
 from model_implementation.model_building.machine_translation_model import MachineTranslationModel
 from model_implementation.model_inference.base_search import SequenceSearchBase, SequenceState
 from torch import Tensor
-from typing import Dict, List, Tuple
+from typing import List
 
 import torch
 
@@ -131,12 +131,15 @@ class BeamSearch(SequenceSearchBase):
         src_mask = src_mask.to(self.device)
         # Pass the source sentence through the encoder to find the encoded src sentence tokens.
         encoded_src = self.translation_model.encode(src=src_batch, src_mask=src_mask)
+        print(f"shape of encoded_src: {encoded_src.shape}")
+        print(f"encoded_src: {encoded_src}")
+        print("-" * 150)
         # Initialize the running_state for beam search to start.
         self.initialize_search_state(src_batch.size(0))
-        # We generate 'tgt_seq_limit' number of tokens (the maximum allowed) in the target sequences.
+        # We generate 'tgt_seq_limit' number of tokens (in the worst case) in the target sequences.
         for _ in range(self.tgt_seq_limit):
             # If there are no potential tgt sequences, we stop the beam search. This essentially means
-            # we already found atleast 'beam_width' number of complete tgt sequences for each src
+            # we already found atleast 'beam_width' number of potential tgt sequences for each src
             # sequence in the batch.
             if len(self.search_state.running_state) == 0:
                 break

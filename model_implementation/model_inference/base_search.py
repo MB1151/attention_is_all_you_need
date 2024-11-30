@@ -14,18 +14,18 @@ logger = get_logger(__name__)
 
 @dataclass
 class SequenceState:
-    # Index of the source sentence for which the current target sequence has been predicted.
+    # Index of the source sequence for which the current target sequence has been predicted.
     index: int
     # Sequence of tokens in the target prediction.
     tokens: Tensor
-    # Log of the probability that this is the current translation for the source sequence.
+    # Log of the probability that this is the translation for the source sequence.
     log_prob: float
 
 class SearchState:
     def __init__(self):
-        # Holds the complete predictions for the source sequences keyed by the source sequence index in the batch.
+        # Holds the final predictions for the source sequences keyed by the source sequence index in the batch.
         self.complete_state: Dict[int, SequenceState] = {}
-        # Holds the active sequences that are active.
+        # Holds the tgt sequences that are not complete (<eos> token not predicted yet) and are being predicted.
         self.running_state: List[SequenceState] = []
 
     def __repr__(self) -> str:
@@ -34,6 +34,7 @@ class SearchState:
 
 class SequenceSearchBase(ABC):
     """A base class for the sequence search algorithms. All sequence search algorithms must inherit from this class."""
+
     def __init__(self, translation_model: MachineTranslationModel, tgt_seq_limit: int, sos_token_id: int, eos_token_id: int, device: str):
         """Initialized the SequenceSearch object.
 
@@ -102,14 +103,15 @@ class SequenceSearchBase(ABC):
 
 
     def get_src_for_running_state(self, encoded_src: Tensor, src_mask: Tensor) -> Tuple[Tensor, Tensor]:
-        """Creates a new encoded src tensor in which the src sequences match the indices in the running 
-        state maintained by search algorithm. Also, creates the src masks for the corresponding src sequences.
+        """Each src sequence in the batch can have multiple tgt sequences running. This function creates
+        a new encoded src tensor in which a corresponding src sequence is repeated for each of the running
+        tgt sequences. Also, creates the src masks for the corresponding src sequences.
 
         Args:
             encoded_src (Tensor): Encoded source sequences i.e., the output of the Encoder after passing the src_batch.
                                   SHAPE: [batch_size, seq_len, d_model]
             src_mask (Tensor): Mask for the corresponding encoded_src.
-                               SHAPE: [batch_size, 1, seq_len, seq_len]
+                               SHAPE: [batch_size, 1, 1, seq_len]
         Returns:
             Tuple[Tensor, Tensor]: src sequence batch tensor and the corresponding mask to be used with Decoder.
                                    SHAPE: ([len(running_state), seq_len, d_model], [len(running_state), 1, seq_len, seq_len])
@@ -117,19 +119,24 @@ class SequenceSearchBase(ABC):
         # Finds the indices of all the src_sequences for which there is a running tgt sequence. If the same
         # src sequence has multiple tgt sequences, the same src sequence index appears multiple times.
         # Example src_indices: [0, 0, 3, 3, 3, 7, 7, 8]
-        # The above src_indices means 
+        # The above src_indices means: 
         # There are 2 running tgt sequences for the 0th src sequence.
         # There are 3 running tgt sequences for the 3rd src sequence.
         # There are 2 running tgt sequences for the 7th src sequence.
         # There is 1 running tgt sequence for the 8th src sequence.
         # The index is the index of the src_sequence in the 'src_batch' or the 'encoded_src'.
         src_indices = torch.tensor(data=[state.index for state in self.search_state.running_state], dtype=torch.int32, device=self.device)
+        print(f"src_indices: {src_indices}")
         # Select the tensors corresponding to the indices in 'src_indices' and create a new
         # tensor to be used as a src for inference.
         # Example src_for_inference: [0th tensor, 0th tensor, 3rd tensor, 3rd tensor, 3rd tensor, 7th tensor, 7th tensor, 7th tensor, 8th tensor] 
         src_for_inference = torch.index_select(input=encoded_src, dim=0, index=src_indices).to(self.device)
         # Create the src mask similarly.
         src_mask_for_inference = torch.index_select(input=src_mask, dim=0, index=src_indices).to(self.device)
+        print(f"src_for_inference: {src_for_inference}")
+        print("-" * 150)
+        print(f"src_mask_for_inference: {src_mask_for_inference}")
+        print("-" * 150)
         return src_for_inference, src_mask_for_inference
 
 

@@ -4,9 +4,12 @@ from tokenizers import ByteLevelBPETokenizer # type: ignore
 from model_implementation.data_processing.tokenization.base_tokenizer import BaseTokenizer
 from model_implementation.utils.constants import MAX_VOCAB_SIZE
 from model_implementation.utils.helpers import get_absolute_path
+from model_implementation.utils.logger import get_logger
 from typing import Callable, List, Optional
 
 import datasets
+
+logger = get_logger(__name__)
 
 
 class BPETokenizer(BaseTokenizer):
@@ -82,6 +85,7 @@ class BPETokenizer(BaseTokenizer):
             directory (str): Directory (relative to the repository root) where the trained tokenizer is saved.
         """
         absolute_directory_path = get_absolute_path(relative_path=directory)
+        logger.debug(f"absolute_directory_path: {absolute_directory_path}")
         self.tokenizer = ByteLevelBPETokenizer.from_file(vocab_filename=f"{absolute_directory_path}/vocab.json", 
                                                          merges_filename=f"{absolute_directory_path}/merges.txt")
         

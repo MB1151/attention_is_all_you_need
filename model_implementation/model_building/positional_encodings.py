@@ -59,7 +59,7 @@ class PositionalEncoding(nn.Module):
         #       -- Extracts the positional encodings for the sequence_length from the positional_encoding 
         #          tensor.
         # (batch_size, sequence_length, encoding_size) --> input
-        # (batch_size, sequence_length, encoding_size) --> Resultant tensor shape after broadcasting.
+        # (batch_size, sequence_length, encoding_size) --> Resultant positional encoding tensor after broadcasting.
         # requires_grad_(False) is not needed since the positional encoding is already registered
         # as a Buffer and not a trainable parameter. It is just included for clarity.
         input = input + self.positional_encoding[:, :input.size(1)].requires_grad_(False)

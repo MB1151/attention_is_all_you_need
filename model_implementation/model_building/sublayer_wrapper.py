@@ -6,6 +6,7 @@
 
 
 from torch import nn, Tensor
+from typing import Callable
 
 # Notice that dropout and layer_norm are the child modules (part of BackPropagation) of the SubLayerWrapper 
 # class. However, 'sublayer' (argument to the forward function) is not a child module of the SubLayerWrapper 
@@ -22,17 +23,19 @@ class SubLayerWrapper(nn.Module):
         self.dropout = nn.Dropout(dropout_prob, inplace=False)
         self.layer_norm = nn.LayerNorm(d_model)
 
-    def forward(self, input: Tensor, sublayer: nn.Module) -> Tensor:
+    def forward(self, input: Tensor, sublayer: Callable[[Tensor], Tensor]) -> Tensor:
         """It applies the operation on the input, applies dropout, adds the input back to the transformed 
            input, does normalization and returns the output.
 
         Args:
             input (Tensor): Input to be transformer by the sublayer.
                             shape: [batch_size, seq_len, d_model]
-            sublayer (nn.Module): sublayer could be either MultiHeadedAttention or PositionwiseFeedForward.
+            sublayer (Callable): sublayer is a callable that takes a tensor as input and returns a tensor 
+                                 as output. Could be either a lambda function that calls MultiHeadedAttention 
+                                 or a direct nn.Module which is PositionwiseFeedForward in this case.
             
         Returns:
             Tensor: Output of the sublayer transformation.
                     shape: [batch_size, seq_len, d_model]
         """
-        return self.layer_norm(input + self.dropout(sublayer(input)))
+        return input + self.dropout(sublayer(self.layer_norm(input)))

@@ -92,7 +92,7 @@ def get_tokenizers(dataset_relative_path: str,
             english_tokenizer.load_trained_tokenizer_from_disk(directory=SPACY_ENGLISH_TOKENIZER_SAVE_PATH)
             telugu_tokenizer.load_trained_tokenizer_from_disk(directory=SPACY_TELUGU_TOKENIZER_SAVE_PATH)
         else:
-            logger.info(f"Retraining Tokenizers")
+            logger.info(f"Retraining spacy Tokenizers")
             # Train the tokenizers on the dataset if retrain_tokenizers is True.
             train_tokenizer(dataset=train_dataset, tokenizer=english_tokenizer, max_vocab_size=max_en_vocab_size)
             english_tokenizer.save_tokenizer_to_disk(directory=SPACY_ENGLISH_TOKENIZER_SAVE_PATH)
@@ -107,7 +107,7 @@ def get_tokenizers(dataset_relative_path: str,
             english_tokenizer.load_trained_tokenizer_from_disk(directory=BPE_ENGLISH_TOKENIZER_SAVE_PATH)
             telugu_tokenizer.load_trained_tokenizer_from_disk(directory=BPE_TELUGU_TOKENIZER_SAVE_PATH)
         else:
-            logger.info(f"Retraining Tokenizers")
+            logger.info(f"Retraining bpe Tokenizers")
             # Train the tokenizers on the dataset if retrain_tokenizers is True.
             train_tokenizer(dataset=train_dataset, tokenizer=english_tokenizer, max_vocab_size=max_en_vocab_size)
             english_tokenizer.save_tokenizer_to_disk(directory=BPE_ENGLISH_TOKENIZER_SAVE_PATH)

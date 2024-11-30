@@ -52,7 +52,7 @@ DEVICE_CPU = "cpu"
 
 # HYPER PARAMETERS USED IN THE MODEL.
 # Number of tokens in the vocabulary of the tokenizer.
-MAX_VOCAB_SIZE = 32000
+MAX_VOCAB_SIZE = 30000
 # Maximum number of tokens in the English vocabulary.
 ENGLISH_VOCAB_SIZE = 30000
 # Maximum number of tokens in the Telugu vocabulary.
@@ -91,7 +91,7 @@ NUM_WARMUP_STEPS = 4000
 # Maximum number of tokens in a sentence that is every input to the model.
 MAX_INPUT_SEQUENCE_LENGTH = 150
 # Number of epochs to train the model.
-NUM_EPOCHS = 2
+NUM_EPOCHS = 10
 # Maximum number of tokens allowed in a translated sentence.
 MAX_INFERENCE_SEQ_LEN = 150
 # DEFAULT beam size to be used in the Beam Search algorithm.

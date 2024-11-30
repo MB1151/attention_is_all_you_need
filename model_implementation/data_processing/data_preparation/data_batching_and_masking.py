@@ -99,18 +99,18 @@ class Batch:
 
         Args:
             tgt (Tensor): Tensor containing the tgt sequences in the batch. Contains token ids.
-                          shape: [batch_size, tgt_seq_len].
+                          shape: [batch_size, tgt_seq_len - 1].
             pad_token_id (int): Id of the pad token appended to the sequences in the batch. Usually 
                                 set to 2.
 
         Returns:
             Tensor: target mask for the given target tensor.
-                    shape: [batch_size, tgt_seq_len, tgt_seq_len].
+                    shape: [batch_size, tgt_seq_len - 1, tgt_seq_len - 1].
         """
         # The target sentences need both the padding mask and the look ahead mask. The padding mask is used
         # to prevent the padding tokens from attending to the other tokens in the target sentences. The look
         # ahead mask is used to prevent the future tokens from attending to the current token or any token.
-        # Shape of tgt_mask after this step: [batch_size, tgt_seq_len, tgt_seq_len]
+        # Shape of tgt_mask after this step: [batch_size, tgt_seq_len - 1, tgt_seq_len - 1]
         tgt_mask = construct_padding_mask(input=tgt, pad_token_id=pad_token_id).repeat(1, tgt.size(1), 1)
         tgt_mask = tgt_mask & construct_look_ahead_mask(tgt.size(-1)).type_as(tgt_mask.data)
         return tgt_mask
