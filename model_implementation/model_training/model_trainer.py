@@ -98,8 +98,8 @@ def train_model_on_epoch(machine_translation_model: MachineTranslationModel,
         # Computes the gradients wrt to the loss.
         loss.backward()
         # Update the gradients only after a certain number of steps. Gradient accumulation has the following advantages:
-        # 1) It allows the model to train on larger batch sizes than the GPU memory can handle.
-        # 2) It allows the model to train on smaller batch sizes than the GPU memory can handle but still get the
+        # 1) It allows the model to seem to train on larger batch sizes than the GPU memory can handle.
+        # 2) It allows the model to train on smaller batch sizes that the GPU memory can handle but still get the
         #    benefits of training on larger batch sizes.
         # 3) Memory is not wasted by storing the gradients for each batch. The gradients are updated only after a
         #    certain number of batches.

@@ -131,9 +131,6 @@ class BeamSearch(SequenceSearchBase):
         src_mask = src_mask.to(self.device)
         # Pass the source sentence through the encoder to find the encoded src sentence tokens.
         encoded_src = self.translation_model.encode(src=src_batch, src_mask=src_mask)
-        print(f"shape of encoded_src: {encoded_src.shape}")
-        print(f"encoded_src: {encoded_src}")
-        print("-" * 150)
         # Initialize the running_state for beam search to start.
         self.initialize_search_state(src_batch.size(0))
         # We generate 'tgt_seq_limit' number of tokens (in the worst case) in the target sequences.
@@ -145,7 +142,7 @@ class BeamSearch(SequenceSearchBase):
                 break
             # As we proceed forward in the algorithm, some of the src sequences might have already found have found <eos> 
             # token in all of its corresponding tgt sequences and so these should not be used anymore for further 
-            # predictions. Also, there might multiple potential tgt sequences for a single src sequence and so we need
+            # predictions. Also, there might be multiple potential tgt sequences for a single src sequence and so we need
             # to copy the same src sequences multiple times. These are handled in the below function call.
             src_for_inference, src_mask_for_inference = self.get_src_for_running_state(encoded_src=encoded_src, src_mask=src_mask)
             # Gets the corresponding tgt sequences and theirs masks as a tensor to be used with the
@@ -175,7 +172,9 @@ class BeamSearch(SequenceSearchBase):
         # A given source sentence can have multiple potential target sequences if beam_width > 1. Here, 
         # we find the number of target sequences currently being used (in running_state) to predict the 
         # next token for each of the source sentences.
-        _, tgt_group_counts = torch.unique(input=torch.tensor(data=[seq_state.index for seq_state in self.search_state.running_state], dtype=torch.int16), return_counts=True)
+        _, tgt_group_counts = torch.unique(input=torch.tensor(data=[seq_state.index for seq_state in self.search_state.running_state], dtype=torch.int16), 
+                                           dim=0, 
+                                           return_counts=True)
         # Holds the running_state for the next iteration of beam search.
         new_running_state: List[SequenceState] = []
         # Index to keep track of the start of the group of tgt sequences for a single source sequence.
@@ -195,7 +194,7 @@ class BeamSearch(SequenceSearchBase):
                 # Index of the source sentence for which the translations are being calculated.
                 src_seq_idx = old_seq_state.index
                 # Extract the top few tokens to be considered as the next token via beam search.
-                top_probs, top_tokens = new_tgt_pred_probs.topk(k=self.beam_width, dim=-1)
+                top_probs, top_tokens = new_tgt_pred_probs.topk(k=self.beam_width, dim=-1, largest=True)
                 # Iterate on each predicted token, create the sequence with this token appended and calculate
                 # the probability of the new sequence (with token appended).
                 for pred_prob, pred_token in zip(top_probs, top_tokens):
@@ -247,28 +246,32 @@ class BeamSearch(SequenceSearchBase):
         # Holds the sequence with the maximum probability for a given source sequence.
         max_prob_state = SequenceState(index=-1, tokens=dummy_tensor, log_prob=float('-inf'))
         for state in self.search_state.running_state:
-            # If the source sequence of the current running sequence is not already in the complete sequences, 
-            # that means we haven't found a complete sequence for this (identified by the index) source sequence 
-            # yet. So, we hold this sequence in the max_prob_state as a potential complete sequence.
-            if state.index not in self.search_state.complete_state:
-                # If we haven't found any complete sequence yet, we just store this sequence as the potential
-                # complete sequence in the max_prob_state.
-                if max_prob_state.index == -1:
+            # If the source sequence of the current running sequence is already present in the complete sequences, 
+            # that means we already found a complete sequence for this (identified by the index) source sequence 
+            # yet. So, we just ignore the running sequences for this specific source sequence.
+            if state.index in self.search_state.complete_state:
+                continue
+            # If we haven't found any complete sequence yet, we just store this sequence as the potential
+            # complete sequence in the max_prob_state.
+            if max_prob_state.index == -1:
+                max_prob_state = state
+            elif max_prob_state.index != state.index:
+                max_prob_state.tokens = torch.cat(tensors=[max_prob_state.tokens, 
+                                                           torch.tensor(data=[self.eos_token_id], dtype=torch.int32, device=self.device)], dim=0)
+                # If all the running sequences have been looked at for the previous src sequence (identified 
+                # by max_prob_state.index), then we just add the potential complete sequence to the list of
+                # complete sequences.
+                self.search_state.complete_state[max_prob_state.index] = max_prob_state
+                # We also store the new running sequence as a new potential running sequence for the new src
+                # sequence (identified by the index state.index).
+                max_prob_state = state
+            else:
+                # If a new potential complete sequence is found, we pick the one with maximum probability and
+                # store it as the potential complete sequence.
+                if max_prob_state.log_prob < state.log_prob:
                     max_prob_state = state
-                elif max_prob_state.index != state.index:
-                    # If all the running sequences have been looked at for the previous src sequence (identified 
-                    # by max_prob_state.index), then we just add the potential complete sequence to the list of
-                    # complete sequences.
-                    self.search_state.complete_state[state.index] = max_prob_state
-                    # We also store the new running sequence as a new potential running sequence for the new src
-                    # sequence (identified by the index state.index).
-                    max_prob_state = state
-                else:
-                    # If a new potential complete sequence is found, we pick the one with maximum probability and
-                    # store it as the potential complete sequence.
-                    if max_prob_state.log_prob < state.log_prob:
-                        max_prob_state = state
         # Add the left out potential sequence to the list of complete sequences.
         if max_prob_state.index != -1:
-            max_prob_state.tokens = torch.cat(tensors=[max_prob_state.tokens, torch.tensor(data=[self.eos_token_id], dtype=torch.int32, device=self.device)], dim=0)
+            max_prob_state.tokens = torch.cat(tensors=[max_prob_state.tokens, 
+                                                       torch.tensor(data=[self.eos_token_id], dtype=torch.int32, device=self.device)], dim=0)
             self.search_state.complete_state[max_prob_state.index] = max_prob_state

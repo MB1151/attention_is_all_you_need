@@ -16,16 +16,18 @@ logger = get_logger(__name__)
 class SequenceState:
     # Index of the source sequence for which the current target sequence has been predicted.
     index: int
-    # Sequence of tokens in the target prediction.
+    # Sequence of tokens in the target prediction. This is a 1D tensor.
     tokens: Tensor
     # Log of the probability that this is the translation for the source sequence.
     log_prob: float
 
 class SearchState:
     def __init__(self):
-        # Holds the final predictions for the source sequences keyed by the source sequence index in the batch.
+        # Holds the final translations (predictions) for the source sequences keyed by the source 
+        # sequence index in the batch.
         self.complete_state: Dict[int, SequenceState] = {}
-        # Holds the tgt sequences that are not complete (<eos> token not predicted yet) and are being predicted.
+        # Holds the tgt sequences that are not complete (<eos> token not predicted yet) and are 
+        # being predicted.
         self.running_state: List[SequenceState] = []
 
     def __repr__(self) -> str:
@@ -126,42 +128,39 @@ class SequenceSearchBase(ABC):
         # There is 1 running tgt sequence for the 8th src sequence.
         # The index is the index of the src_sequence in the 'src_batch' or the 'encoded_src'.
         src_indices = torch.tensor(data=[state.index for state in self.search_state.running_state], dtype=torch.int32, device=self.device)
-        print(f"src_indices: {src_indices}")
+        # Refer to 'Understanding_Pytorch/tensor_manipulations/understanding_tensor_manipulations_part_7.ipynb' 
+        # to understand how 'torch.index_select' works.
         # Select the tensors corresponding to the indices in 'src_indices' and create a new
         # tensor to be used as a src for inference.
         # Example src_for_inference: [0th tensor, 0th tensor, 3rd tensor, 3rd tensor, 3rd tensor, 7th tensor, 7th tensor, 7th tensor, 8th tensor] 
         src_for_inference = torch.index_select(input=encoded_src, dim=0, index=src_indices).to(self.device)
         # Create the src mask similarly.
         src_mask_for_inference = torch.index_select(input=src_mask, dim=0, index=src_indices).to(self.device)
-        print(f"src_for_inference: {src_for_inference}")
-        print("-" * 150)
-        print(f"src_mask_for_inference: {src_mask_for_inference}")
-        print("-" * 150)
         return src_for_inference, src_mask_for_inference
 
 
     def create_tgt_mask_for_inference(self, batch_size: int, seq_len: int) -> Tensor:
-        """Creates the target mask for inference. During inference, there are no padding tokens in the target sentence. So,
+        """Creates the target mask for inference. During inference, there are no padding tokens in the target sequence. So,
         the target mask is created without taking the padding tokens into account.
 
         Args:
             batch_size (int): Number of sequences in the batch.
-            seq_len (int): Length of each sequence in the batch.
+            seq_len (int): Length of each target sequence in the batch.
 
         Returns:
             Tensor: Target mask for inference. 
                     SHAPE: [batch_size, 1, seq_len, seq_len].
         """
         # Create a 2D look ahead mask for a sequence of length 'seq_len'.
-        # The mask is of shape [seq_len, seq_len].
+        # shape of the mask: [seq_len, seq_len].
         tgt_mask = construct_look_ahead_mask(size=seq_len)
         # The same look ahead mask is applied to all the sequences in the batch. So, we unsqueeze the mask and repeat it
         # 'batch_size' times.
-        # The mask is of shape [batch_size, seq_len, seq_len].
+        # shape of the mask: [batch_size, seq_len, seq_len].
         tgt_mask = tgt_mask.unsqueeze(0).repeat(batch_size, 1, 1)
         # The same mask is applied to all the heads in the decoder. So, we unsqueeze the mask to make it broadcastable
         # across the heads.
-        # The mask is of shape [batch_size, 1, seq_len, seq_len].
+        # shape of the mask: [batch_size, 1, seq_len, seq_len].
         tgt_mask = tgt_mask.unsqueeze(1)
         # The target decoder input does not contain the padding tokens. So, do not need to take padding into account to
         # create the target mask.
@@ -176,16 +175,17 @@ class SequenceSearchBase(ABC):
             Tuple[Tensor, Tensor]: tgt sequence batch tensor and the corresponding mask to be used with Decoder.
                                    SHAPE: ([BATCH_SIZE (varies), SEQ_LEN (varies)], [BATCH_SIZE (varies), 1, SEQ_LEN (varies), SEQ_LEN (varies)])
         """
+        # Refer to 'Understanding_Pytorch/tensor_manipulations/understanding_tensor_manipulations_part_2.ipynb' to
+        # understand how 'torch.stack' works. This will be a 2D tensor with each row representing a tgt sequence.
+        # SHAPE: [len(running_state), seq_len]
         tgt_for_inference = torch.stack(tensors=[state.tokens for state in self.search_state.running_state], dim=0).to(self.device)
         tgt_mask_for_inference = self.create_tgt_mask_for_inference(batch_size=tgt_for_inference.size(0), seq_len=tgt_for_inference.size(1)).to(self.device)
-        logger.debug(f"tgt for inference: {tgt_for_inference}")
-        logger.debug(f"tgt_mask for inference: {tgt_mask_for_inference}")
         return tgt_for_inference, tgt_mask_for_inference
 
 
     def advance(self, encoded_src: Tensor, src_mask: Tensor, tgt_batch: Tensor, tgt_mask: Tensor):
         """Predicts 1 token for all the (src, tgt) pairs and appends it at the back of each
-        tgt sequence. Also, updates the search state according the newly predicted tokens and their
+        tgt sequence. Also, updates the search state according to the newly predicted tokens and their
         associated probabilities.
 
         Args:

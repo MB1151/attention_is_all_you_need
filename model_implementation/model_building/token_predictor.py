@@ -28,7 +28,7 @@ class TokenPredictor(nn.Module):
         """
         # Project the decoder output to the vocab_size dimensional space.
         logits = self.linear(decoder_output)
-        # Convert the logits to a probability distribution over the vocabulary. All the entires in the
+        # Convert the logits to a probability distribution over the vocabulary. All the entries in the
         # output tensor are negative since we are using log softmax. The log softmax is used to make
         # the training more numerically stable. However, the maximum value in log_softmax is still the 
         # same as the maximum value of the general softmax output.

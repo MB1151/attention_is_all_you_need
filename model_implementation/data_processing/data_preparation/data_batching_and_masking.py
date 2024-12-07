@@ -63,7 +63,7 @@ class Batch:
         # It might be tempting to make the src_mask of shape [batch_size, 1, src_seq_len, src_seq_len] but, for the 
         # src_mask to be used with self attention in Encoder, the shape should be 
         # [batch_size, num_heads, src_seq_len, src_seq_len] and for the src_mask to be used with source attention in
-        # Decoder, the shape should be [batch_size, num_heads, tgt_seq_len, seq_len]. So, we will keep the 
+        # Decoder, the shape should be [batch_size, num_heads, tgt_seq_len, src_seq_len]. So, we will keep the 
         # shape of src_mask as [batch_size, 1, 1, src_seq_len] and then let the model handle the broadcasting of 
         # the mask to the required shape.
         # The source sequences only need the padding mask since the Encoder does not have to predict

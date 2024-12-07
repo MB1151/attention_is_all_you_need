@@ -55,6 +55,7 @@ class LabelSmoothing(nn.Module):
         # Bringing the targets tensor to contain the same number of dimensions as the smoothed_probs tensor to 
         # use it with the 'scatter_' function. This is to replace the probabilities in the smoothed_probs tensor 
         # for the padding token and the correct token in the following steps.
+        # shape of unsqueezed_targets: [batch_size, tgt_seq_len - 1, 1]
         unsqueezed_targets = targets.unsqueeze(dim=-1)
         logger.debug(f"POINT 2 -- unsqueezed_targets device: {unsqueezed_targets.device}")
         # Replacing the probabilities in the smoothed_probs tensor with the confidence probability at the 
