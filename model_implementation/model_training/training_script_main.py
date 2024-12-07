@@ -3,14 +3,19 @@
 # dataset from disk, wraps the dataset in a pytorch Dataset, gets the tokenizers for the English and
 # Telugu languages, and trains the translation model.
 
+# Useful when training on Google Colab. We don't need the below line when running locally because of
+# the way visual studio code is set up.
+# import sys
+# sys.path.append("/content/drive/My Drive/Learning AI/Artificial Intelligence/Projects/Github/attention_is_all_you_need")
+
 from model_implementation.data_processing.data_preparation.dataset_wrapper import DatasetWrapper
 from model_implementation.data_processing.data_preparation.data_helpers import get_tokenizers, load_data_from_disk
 from model_implementation.model_training.model_trainer import train_model
 from model_implementation.utils.config import LOG_LEVEL
 from model_implementation.utils.constants import (
-    DEBUG_DATASET_PATH, ENGLISH_VOCAB_SIZE, FULL_EN_TE_DATASET_PATH, MAX_NUM_OF_MEM_EVENTS_PER_SNAPSHOT, 
-    MEMORY_SNAPSHOT_PATH, NUM_EPOCHS, PAD_TOKEN, TELUGU_VOCAB_SIZE, TRAIN_DATASET_PATH, 
-    VALIDATION_DATASET_PATH, DEVICE_GPU
+    DEBUG_DATASET_PATH, ENGLISH_VOCAB_SIZE, FULL_EN_TE_DATASET_PATH, LARGE_TRAIN_DATASET_PATH,
+    MAX_NUM_OF_MEM_EVENTS_PER_SNAPSHOT, MEMORY_SNAPSHOT_PATH, NUM_EPOCHS, PAD_TOKEN, TELUGU_VOCAB_SIZE, 
+    TRAIN_DATASET_PATH, VALIDATION_DATASET_PATH, DEVICE_GPU
 )
 from model_implementation.utils.logger import get_logger
 from model_implementation.utils.helpers import get_absolute_path, get_device, save_model_to_disk
@@ -55,11 +60,11 @@ def train_translation_model(device: str,
         # Time in seconds elapsed since the beginning of the epoch (Not training epoch but the standard point from which time is calculated).
         # Time at which the model training started.
         start_time = time.time()
-        logger.info(f"Loading the following dataset for training: {TRAIN_DATASET_PATH}")
+        logger.info(f"Loading the following dataset for training: {LARGE_TRAIN_DATASET_PATH}")
         # Load the train dataset from disk.
-        train_dataset: datasets.arrow_dataset.Dataset = load_data_from_disk(dataset_relative_path=TRAIN_DATASET_PATH)
+        train_dataset: datasets.arrow_dataset.Dataset = load_data_from_disk(dataset_relative_path=LARGE_TRAIN_DATASET_PATH)
         # Wrap the hugging face dataset in a pytorch Dataset to be able to use with pytorch DataLoader.
-        translation_dataset = DatasetWrapper(hf_dataset=train_dataset, dataset_name="TRAIN_DATASET")
+        translation_dataset = DatasetWrapper(hf_dataset=train_dataset, dataset_name="LARGE_TRAIN_DATASET")
         # Load the validation dataset from disk.
         validation_hf_dataset: datasets.arrow_dataset.Dataset = load_data_from_disk(dataset_relative_path=VALIDATION_DATASET_PATH)
         # Wrap the hugging face dataset in a pytorch Dataset to be able to use with pytorch DataLoader.

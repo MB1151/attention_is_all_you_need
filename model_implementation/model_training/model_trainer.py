@@ -68,7 +68,7 @@ def train_model_on_epoch(machine_translation_model: MachineTranslationModel,
     num_batches_processed = 0
     num_batches_skipped = 0
     total_loss = 0.0
-    for src_batch, tgt_batch in tqdm(train_dataLoader):
+    for src_batch, tgt_batch in train_dataLoader:
         if src_batch.shape[1] > MAX_INPUT_SEQUENCE_LENGTH or tgt_batch.shape[1] > MAX_INPUT_SEQUENCE_LENGTH:
             logger.debug(f"Sequence length of src_batch: {src_batch.shape[1]} and Sequence length of tgt_batch: {tgt_batch.shape[1]}")
             logger.debug(f"Skipping batch {num_batches_processed} as the sequence length is greater than the maximum sequence length.")
