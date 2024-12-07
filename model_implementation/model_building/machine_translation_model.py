@@ -117,14 +117,8 @@ class MachineTranslationModel(nn.Module):
         """
         # Get the embeddings for the source sentences.
         src_embeddings = self.src_embedding(src)
-        print(f"shape of src_embeddings: {src_embeddings.shape}")
-        print(f"src_embeddings: {src_embeddings}")
-        print("-" * 150)
         # Add the positional encodings to the embeddings.
         src_embeddings = self.src_positional_encoding(src_embeddings)
-        print(f"shape of src_embeddings after positional encoding: {src_embeddings.shape}")
-        print(f"src_embeddings after positional encoding: {src_embeddings}")
-        print("-" * 150)
         # Pass the source sentence through the encoder.
         encoded_src = self.encoder(input=src_embeddings, mask=src_mask)
         return encoded_src
