@@ -18,8 +18,8 @@ This repository is intended for anyone looking to learn about transformers in de
 - [Repository Structure](#repository-structure)
 - [Usage](#usage)
 - [Hardware](#hardware)
+- [Model Quality Evaluation](#model-quality-evaluation)
 - [Model Debugging](#model-debugging)
-- [Model Quality](#model-quality)
 
 ## Getting Started
 
@@ -399,6 +399,8 @@ Run the following command to install the necessary packages in the virtual envir
 
 ```pip install -r requirements.txt```
 
+We need to download the dataset from translation dataset from Hugging Face and create smaller datasets to be used with this repository. Run [`step_1_data_exploration.ipynb`](building_transformers_step_by_step/data_preparation/step_1_data_exploration.ipynb) notebook to create all the necessary datasets used during training, inference and quality evaluation.
+
 ### Training
 
 The entry point to train the model is `model_implementation/model_training/training_script_main.py`
@@ -468,7 +470,7 @@ python model_implementation/model_inference/inference_script_main.py --model_nam
 
 Issue with inference:
 
-- Some terminals (mine in this category) does not support Telugu language and so it prints text that is unreadable on the terminal. To avoid this, I tried directing the output of inference to `output.txt` file which prints readable Telugu text.
+- Some terminals (mine in this category) do not support Telugu language and so it prints text that is unreadable on the terminal. To avoid this, I tried directing the output of inference to `output.txt` file which prints readable Telugu text.
 
 
 ## Hardware
@@ -477,7 +479,7 @@ I trained several times before ending up with a good working model. The below st
 
 ### Environment:
 
-I used **Google Colab Pro+** subscription to get access to powerful GPU with a relatively cheaper cost. All other subscriptions are way too costly to experiment for personal use.
+I used [**Google Colab Pro+**](https://colab.research.google.com/signup) subscription to get access to powerful GPU with a relatively cheaper cost. All other subscriptions are way too costly to experiment for personal use.
 
 ```
 Runtime Type: Python 3
@@ -500,8 +502,72 @@ System RAM: 32 GB
 I trained the model (on Google Colab) with batch size of 64 for 20 epochs. The total training time was `527.44 minutes` or `8.79 hours`. Please navigate to [`training_statistics.md`](training_statistics.md) file for more details on the runtime statistics.
 
 
+## Model Quality Evaluation
+
+The gold standard to measure the quality of translations is human evaluations. This is because of the huge number of possible variations to express any sentence. However, since I cannot evaluate the quality manually, I used the industry standard metric - **BLEU score**, to evaluate the quality of my English - Telugu translation model. Please refer to the resources in [BLEU score](#bleu-score) section to understand more about BLEU score. I implemented the script to calculate BLEU score on Test Dataset. 
+
+The entry point to model quality evaluation is `model_implementation/model_quality/quality_inference_main.py`
+
+The quality evaluation script accepts the following command line arguments:
+
+```
+- model_name (Required): Name of the model to load from disk.
+- model_checkpoint_prefix (Optional): Prefix to be appended to model names while loading from the disk. Defaults to empty string ("").
+-- tokenizer_type (Optional): Tokenizer to be used during quality evaluation. Can be 'spacy' or 'bpe'. Defaults to 'bpe'
+-- search_type (Optional): Search algorithm to be used during inference. Can be 'beam' or 'greedy'. Defaults to 'beam'.
+- beam_width (Optional): Width of the beam to be used in the beam search algorithm. Only used if 'search_type' is 'beam'. Defaults to 3.
+- device (Optional): Device to be used during model inference. Can be 'cpu' or 'cuda'. Defaults to 'cpu'.
+- use_saved_predictions (Optional): If set to True, uses previously predicted Telugu translations to calculate the BLEU score. Defaults to 'False'.
+```
+
+Inspecting manually on a small number of examples, my best model seems to do a very good job in translating English sentences to Telugu. 
+
+The calculated BLEU score is as follows:
+
+<table border="1">
+  <thead>
+    <tr>
+      <th>Package Used</th>
+      <th>BLEU Score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>nltk</td>
+      <td>39.60</td>
+    </tr>
+    <tr>
+      <td>sacre bleu</td>
+      <td>7.63</td>
+    </tr>
+  </tbody>
+</table>
+
+I am not sure (Need to dig deeper and update) why there is such a huge difference in the scores calculated by these two packages. However, nltk is widely to calculate BLEU scores and *39.60* is an excellent score.
+
 ## Model Debugging
 
-Model Debugging was one of the hardest parts during training. It is very hard to figure out issues with Neural Network models. I have created [`model_debug_support.ipynb`](model_implementation/model_debug_support.ipynb) notebook to perform experiments and identify issues in my implementation
+Model Debugging was one of the hardest parts to handle during training and inference. It is very hard to figure out issues with Neural Network models in general. 
 
-## Model Quality
+I created [`model_debug_support.ipynb`](model_implementation/model_debug_support.ipynb) notebook to perform experiments and identify issues in my implementation. It is easier to debug the model if you have very good grasp on the implementation details and what values (input, output, and some idea on what these numbers look like) to expect before and after every step.
+
+Some issues I faced and resolved:
+- Mismatch in model parameters.
+    - Count the model parameters manually and verify that the number is same as the created model in code.
+- Issues with Pytorch DataLoader
+    - Log the output of dataloader on a much smaller debug dataset and verify manually that the output of dataloader is looking reasonable.
+    - Verify that the sentence grouping is correct.
+- Issues with inplace operations
+    - Most of the Pytorch operations by default are not inplace. Verify that result of an operation is being assigned back to the variables.
+- Issues with data masking
+    - This can get very confusing. Spend time figuring out exactly how masking is used during training and inference and verify the implementation separately.
+    - Use similar mask during training and inference. There was a huge change in the quality of output when I slightly edited the masks for inference.
+- Issues with Shapes and Broadcasting
+    - Lot of the code depends on broadcasting. Perform the operations separately to verify that broadcasting is being performed as expected. It is extremely tricky to debug these issues.
+- Issues with Beam Search
+    - Beam Search is very tricky to implement. Verify each step of beamsearch separately.
+    - Greedy Search is a special case of Beam Search where `beam_width` is set to 1. Verify the correctness by comparing the output of Greedy Search and Beam Search with `beam_width` set to 1.
+- Compare with existing model implementations
+    - Having a benchmark implementation makes it much easier to identify issues. I compared the core implementation of my code with the existing [`annonated-transformer`](https://nlp.seas.harvard.edu/annotated-transformer/) line by line to identify implementation issues in attention specifically.
+- Implement both training script and inference script together
+    - It is much easier to debug the model if you can actually verify the output of the model on a test set. So, it is better to implement the inference code before starting the model training.
