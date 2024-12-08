@@ -18,7 +18,8 @@ This repository is intended for anyone looking to learn about transformers in de
 - [Repository Structure](#repository-structure)
 - [Usage](#usage)
 - [Hardware](#hardware)
-
+- [Model Debugging](#model-debugging)
+- [Model Quality](#model-quality)
 
 ## Getting Started
 
@@ -375,7 +376,7 @@ Contains additional resources that help in understanding the model architecture.
 - `tokenizers`
     * Holds the trained BPE English and Telugu language tokenizers.
 - `translation_models`
-    * Holds the model checkpoint that are periodically created in between the training.
+    * Holds the model checkpoints that are periodically created after every epoch during the training.
 
 
 ### Deep Dive into `model_implementation/`
@@ -408,20 +409,44 @@ The training script accepts the following command line arguments:
 - model_checkpoint_prefix (Optional): Prefix to be appended to model names while saving to disk. Defaults to empty string ("").
 - model_name (Optional): Name to use to save the final model on disk. Defaults to a randomly generated string.
 - device (Optional): Device to be used for training the model. Can be 'cpu' or 'cuda'. Defaults to 'cpu'.
+- tokenizer_type (Optional): Tokenizer type to be used in the model. Can be 'spacy' or 'bpe'. Defaults to 'bpe'
 - retrain_tokenizers (Optional): Flag to indicate if the tokenizers should be retrained. Defaults to False
 - max_english_vocab_size (Optional): Maximum size of the English vocabulary. Only used if retrain_tokenizers is set to True. Defaults to 30000.
 - max_telugu_vocab_size (Optional): Maximum size of the Telugu vocabulary. Only used if retrain_tokenizers is set to True. Defaults to 30000.
+- resume_training (Optional): Flag to indicate whether training should be resumed on an existing model. Defaults to False.
 ```
 
 Run the following command to train the model:
 
 ```
-python model_implementation/model_training/training_script_main.py --model_name "en-te-model" --model_checkpoint_prefix "first_run" --device "cuda" --retrain_tokenizers False
+python model_implementation/model_training/training_script_main.py --model_name "en-te-model" --model_checkpoint_prefix "first_run" --device "cuda" --tokenizer_type "bpe" --retrain_tokenizers True --max_english_vocab_size 30000 --max_telugu_vocab_size 30000
 ```
 
+#### Model Checkpointing:
+
+Translation Models:
+
+- Model parameters are saved to `Data/trained_models/translation_models` after every epoch. 
+- The name format of the model saved after epoch `NUM` is `{model_checkpoint_prefix}_epoch_{NUM}_{model_name}.pt`. 
+- The final model is saved as `{model_checkpoint_prefix}_{model_name}.pt`.
+- Please note that each model instance size is around `350 MB`.
+
+
+Tokenizers:
+
+- If `retrain_tokenizers` is set to `True`, tokenizers are trained from scratch and saved for future use.
+- If `tokenizer_type` is set to `bpe`, the trained English and Telugu tokenizers are saved to `Data/trained_models/tokenizers/bpe/bpe_english_tokenizer` and `Data/trained_models/tokenizers/bpe/bpe_telugu_tokenizer` respectively.
+- If `tokenizer_type` is set to `spacy`, the trained English and Telugu tokenizers are saved to `Data/trained_models/tokenizers/spacy/spacy_english_tokenizer` and `Data/trained_models/tokenizers/spacy/spacy_telugu_tokenizer` respectively. 
+- Please note that `bpe` and `spacy` tokenizers are fundamentally different and the information being saved to disk is also different in both cases.
+
+Memory Snapshot:
+
+- I also saved the memory snapshot to disk to understand how memory is being allocated on GPU and figure out any leaks to optimize memory usage.
+- Memory snapshot is saved as `Data/trained_models/miscellaneous/memory_snapshot.pickle` after every training iteration.
+ 
 ### Inference
 
-Inference script will load the trained model into memory and translate any input English sentences into Telugu. Unfortunately, the script does not have any guard rails. It will try to translate the sentences of any language and output garbage if the input is not in English.
+Inference script will load the trained model from disk into memory and translate any input English sentences into Telugu. Unfortunately, the script does not have any guard rails. It will try to translate the sentences of any language and output garbage if the input is not in English.
 
 The entry point to model inference is `model_implementation/model_inference/inference_script_main.py`
 
@@ -430,16 +455,53 @@ The inference script accepts the following command line arguments:
 ```
 - model_name (Required): Name of the model to load from disk.
 - model_checkpoint_prefix (Optional): Prefix to be appended to model names while loading from the disk. Defaults to empty string ("").
-- beam_width (Optional): Width of the beam to be used in the beam search algorithm. Defaults to 3.
+-- search_type (Optional): Search algorithm to be used during inference. Can be 'beam' or 'greedy'. Defaults to 'beam'.
+- beam_width (Optional): Width of the beam to be used in the beam search algorithm. Only used if 'search_type' is 'beam'. Defaults to 3.
 - device (Optional): Device to be used during model inference. Can be 'cpu' or 'cuda'. Defaults to 'cpu'.
 ```
 
 Run the following command to use the trained model for inference:
 
 ```
-python model_implementation/model_inference/inference_script_main.py --model_name "en-te-model" --model_checkpoint_prefix "first_run" --device "cuda" --beam_width 3
+python model_implementation/model_inference/inference_script_main.py --model_name "en-te-model" --model_checkpoint_prefix "first_run" --device "cuda" --search_type "beam" --beam_width 3
 ```
+
+Issue with inference:
+
+- Some terminals (mine in this category) does not support Telugu language and so it prints text that is unreadable on the terminal. To avoid this, I tried directing the output of inference to `output.txt` file which prints readable Telugu text.
+
 
 ## Hardware
 
-I trained the model on `RTX 4090, 16GB GPU` machines. These are the stats for the training:
+I trained several times before ending up with a good working model. The below stats correspond only to the final working model during training.
+
+### Environment:
+
+I used **Google Colab Pro+** subscription to get access to powerful GPU with a relatively cheaper cost. All other subscriptions are way too costly to experiment for personal use.
+
+```
+Runtime Type: Python 3
+Hardware Accelerator: L4 GPU
+GPU RAM: 22.5 GB
+System RAM: 62.8 GB
+Disk: 200 GB
+```
+
+Note: I also tried training on my personal laptop with the specs as attached below. This required me to reduce the Batch size from 64 (on Colab) to 32 (on personal laptop). 
+
+```
+Hardware Accelerator: Nvidia RTX 4090 GPU
+GPU RAM: 16 GB
+System RAM: 32 GB
+```
+
+### Training Statistics:
+
+I trained the model (on Google Colab) with batch size of 64 for 20 epochs. The total training time was `527.44 minutes` or `8.79 hours`. Please navigate to [`training_statistics.md`](training_statistics.md) file for more details on the runtime statistics.
+
+
+## Model Debugging
+
+Model Debugging was one of the hardest parts during training. It is very hard to figure out issues with Neural Network models. I have created [`model_debug_support.ipynb`](model_implementation/model_debug_support.ipynb) notebook to perform experiments and identify issues in my implementation
+
+## Model Quality

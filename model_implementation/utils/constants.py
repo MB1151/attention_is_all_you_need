@@ -34,6 +34,7 @@ SPACY_TELUGU_TOKENIZER_SAVE_PATH = "Data/trained_models/tokenizers/spacy/spacy_t
 # Path at which the trained model checkpoints are saved during the training process.
 MODEL_CHECK_POINT_PATH = "Data/trained_models/translation_models"
 
+
 # SPECIAL TOKEN CONSTANTS.
 # Token to represent the start of a sentence.
 START_TOKEN = "<sos>"
@@ -49,6 +50,7 @@ UNK_TOKEN = "<unk>"
 DEVICE_GPU = "cuda"
 # device to be used for training the model on the CPU.
 DEVICE_CPU = "cpu"
+
 
 # HYPER PARAMETERS USED IN THE MODEL.
 # Number of tokens in the vocabulary of the tokenizer.
@@ -96,11 +98,23 @@ NUM_EPOCHS = 20
 MAX_INFERENCE_SEQ_LEN = 150
 # DEFAULT beam size to be used in the Beam Search algorithm.
 DEFAULT_BEAM_SIZE = 3
-# Number of batches after which the model parameters are updated.
+# Number of batches after which the model parameters are updated using the gradients.
 GRADIENT_UPDATE_FREQUENCY = 5
 
 
+# CONSTANTS USED TO DEBUG THE MODEL DURING TRAINING.
 # The maximum number of memory events that can be stored in a snapshot.
 MAX_NUM_OF_MEM_EVENTS_PER_SNAPSHOT = 10000
 # File in which the memory snapshot is saved.
 MEMORY_SNAPSHOT_PATH = "Data/trained_models/miscellaneous/memory_snapshot.pickle"
+
+
+# CONSTANTS USED DURING MODEL QUALITY EVALUATION.
+# Default number of examples to be loaded into a batch for BLEU score calculation.
+# We use a smaller batch size for BLEU score calculation as it considers multiple translations for a
+# single sentence at every step and it generates one token at a time which can take a lot of time.
+BLEU_BATCH_SIZE = 8
+# File in which the predictions of the model on test set during quality evaluation are saved.
+BLEU_PREDICTIONS_FILE_PATH = "Data/trained_models/miscellaneous/bleu_predictions.txt"
+# File in which the references of the model on test set during quality evaluation are saved.
+BELU_REFERENCES_FILE_PATH = "Data/trained_models/miscellaneous/bleu_references.txt"

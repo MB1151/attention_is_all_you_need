@@ -70,6 +70,7 @@ def get_tokenizers(dataset_relative_path: str,
 
     Args:
         dataset_relative_path (str): Path to the dataset to train the tokenizers on.
+                                     Not used if retrain_tokenizers is False.
         tokenizer_type (str): Type of tokenizer to be used. It can be either 'spacy' or 'bpe'.
         retrain_tokenizers (bool, optional): Flag to indicate if the tokenizers should be retrained. Defaults to False.
         max_en_vocab_size (int, optional): Maximum size of the English vocabulary to create from the input data corpus.

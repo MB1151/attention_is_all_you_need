@@ -2,6 +2,8 @@
 # references -- True sentences which are known to be correct and against which the predicted sentences are compared.
 # predictions -- Sentences predicted by the model.
 
+import evaluate
+
 from datasets import load_metric
 from enum import Enum
 from nltk.translate.bleu_score import corpus_bleu
@@ -25,9 +27,9 @@ def compute_sacre_bleu_score(predictions: List[str], references: List[List[str]]
         float: corpus bleu score for the input. Range: [0, 100]
     """
     # Load the BLEU metric from the datasets library.
-    bleu_metric = load_metric("sacrebleu")
+    bleu_metric = evaluate.load("sacrebleu")
     bleu_score = bleu_metric.compute(predictions=predictions, references=references)   # type: ignore
-    return bleu_score["score"]
+    return bleu_score["score"]  # type: ignore
 
 
 def compute_nltk_bleu_score(predictions: List[str], references: List[List[str]]) -> float:

@@ -64,6 +64,7 @@ if __name__ == "__main__":
     parser.add_argument("--tokenizer_type", type=str, help="Type of tokenizer to be used. Can be 'spacy' or 'bpe'", default="bpe")
     parser.add_argument("--search_type", type=str, help="Type of search to be used. Can be beam or greedy", default="beam")
     parser.add_argument("--device", type=str, help="Device to be used during model inference.", default=get_device())
+    parser.add_argument("--use_saved_predictions", type=bool, help="Flag to use the saved predictions instead of re-evaluating.", default=False)
     args = parser.parse_args()
 
     english_tokenizer, telugu_tokenizer = get_tokenizers(dataset_relative_path=FULL_EN_TE_DATASET_PATH, 
@@ -80,13 +81,14 @@ if __name__ == "__main__":
     # For example, dropout is applied only during training and not during evaluation.
     translation_model.eval()
 
-    test_dataset = load_test_set()
+    test_dataset: DatasetWrapper = load_test_set()
     sacrebleu_score, nltk_bleu_score = evaluate_quality(machine_translation_model=translation_model,
                                                         src_tokenizer=english_tokenizer,
                                                         tgt_tokenizer=telugu_tokenizer,
                                                         test_dataset=test_dataset,
                                                         search_type=args.search_type,
                                                         device=args.device,
-                                                        beam_width=args.beam_width)
+                                                        beam_width=args.beam_width,
+                                                        use_saved_predictions=args.use_saved_predictions)
     logger.info(f"BLEU Score using sacrebleu: {sacrebleu_score}")
     logger.info(f"BLEU Score using nltk: {nltk_bleu_score}")

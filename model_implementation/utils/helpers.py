@@ -1,11 +1,11 @@
 # This file implements helper functions that are used in the model implementation.
 
-from model_implementation.utils.constants import DEVICE_CPU, DEVICE_GPU, MODEL_CHECK_POINT_PATH
-from torch import nn
-
 import copy
 import os
 import torch
+
+from model_implementation.utils.constants import DEVICE_CPU, DEVICE_GPU, MODEL_CHECK_POINT_PATH
+from torch import nn
 
 
 # Creates a copy (deepcopy) of the module and returns ModuleList containing the copies.
@@ -50,7 +50,10 @@ def get_full_model_path_from_name(model_name: str, checkpoint_prefix: str="") ->
     Returns:
         str: Returns full path to the model on the machine.
     """
-    absolute_path_to_model_state = get_absolute_path(relative_path=f"{MODEL_CHECK_POINT_PATH}/{checkpoint_prefix}_{model_name}.pt") 
+    if checkpoint_prefix == "":
+        absolute_path_to_model_state = get_absolute_path(relative_path=f"{MODEL_CHECK_POINT_PATH}/{model_name}.pt")
+    else:
+        absolute_path_to_model_state = get_absolute_path(relative_path=f"{MODEL_CHECK_POINT_PATH}/{checkpoint_prefix}_{model_name}.pt") 
     return absolute_path_to_model_state
 
 
@@ -84,3 +87,30 @@ def get_device() -> str:
         str: Returns the device on which the model has to be trained.
     """
     return DEVICE_GPU if torch.cuda.is_available() else DEVICE_CPU
+
+
+def save_lines_to_file(lines: list[str], relative_filepath: str):
+    """Saves a list of strings to a file, one string per line.
+
+    Args:
+        lines (list[str]): List of strings to save.
+        relative_filepath (str): Path to the file (relative to the repository root) where strings should be saved.
+    """
+    full_filepath = get_absolute_path(relative_path=relative_filepath)
+    with open(full_filepath, 'w', encoding='utf-8') as f:
+        for line in lines:
+            f.write(f"{line}\n")
+
+
+def load_lines_from_file(relative_filepath: str) -> list[str]:
+    """Loads strings from a file into a list, one string per line.
+
+    Args:
+        relative_filepath (str): Path to the file (relative to the repository root) where strings should be saved.
+
+    Returns:
+        list[str]: List of strings read from the file
+    """
+    full_filepath = get_absolute_path(relative_path=relative_filepath)
+    with open(full_filepath, 'r', encoding='utf-8') as f:
+        return [line.strip() for line in f]

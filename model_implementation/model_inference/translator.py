@@ -49,7 +49,7 @@ def create_src_input(src_sentences: List[str], src_tokenizer: BaseTokenizer, dev
     # Converts each source sentence into a list of token ids.
     for sentence in src_sentences:
         tokenized_src_sequences.append(src_tokenizer.encode(sentence))
-    print(f"tokenized_src_sequences: {tokenized_src_sequences}")
+    logger.debug(f"tokenized_src_sequences: {tokenized_src_sequences}")
     # The source sequences after tokenization could be of different lengths. We need to equalize the lengths
     # of the source sequences by padding the shorter sequences with the pad token id.
     equalize_src_seq_lengths(tokenized_src_sequences=tokenized_src_sequences, src_tokenizer=src_tokenizer)
@@ -86,9 +86,6 @@ def translate(translation_model: MachineTranslationModel,
     """
     # Create the source batch and mask which will be used as input to the model.
     src_batch, src_mask = create_src_input(src_sentences=src_sentences, src_tokenizer=src_tokenizer, device=device)
-    print(f"src_batch: {src_batch}")
-    print("-" * 150)
-    print(f"src_mask: {src_mask}")
     sos_token_id = src_tokenizer.get_token_id(START_TOKEN)
     eos_token_id = src_tokenizer.get_token_id(END_TOKEN)
     if search_type == "beam":
