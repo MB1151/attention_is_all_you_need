@@ -457,7 +457,7 @@ The inference script accepts the following command line arguments:
 ```
 - model_name (Required): Name of the model to load from disk.
 - model_checkpoint_prefix (Optional): Prefix to be appended to model names while loading from the disk. Defaults to empty string ("").
--- search_type (Optional): Search algorithm to be used during inference. Can be 'beam' or 'greedy'. Defaults to 'beam'.
+- search_type (Optional): Search algorithm to be used during inference. Can be 'beam' or 'greedy'. Defaults to 'beam'.
 - beam_width (Optional): Width of the beam to be used in the beam search algorithm. Only used if 'search_type' is 'beam'. Defaults to 3.
 - device (Optional): Device to be used during model inference. Can be 'cpu' or 'cuda'. Defaults to 'cpu'.
 ```
@@ -513,8 +513,8 @@ The quality evaluation script accepts the following command line arguments:
 ```
 - model_name (Required): Name of the model to load from disk.
 - model_checkpoint_prefix (Optional): Prefix to be appended to model names while loading from the disk. Defaults to empty string ("").
--- tokenizer_type (Optional): Tokenizer to be used during quality evaluation. Can be 'spacy' or 'bpe'. Defaults to 'bpe'
--- search_type (Optional): Search algorithm to be used during inference. Can be 'beam' or 'greedy'. Defaults to 'beam'.
+- tokenizer_type (Optional): Tokenizer to be used during quality evaluation. Can be 'spacy' or 'bpe'. Defaults to 'bpe'
+- search_type (Optional): Search algorithm to be used during inference. Can be 'beam' or 'greedy'. Defaults to 'beam'.
 - beam_width (Optional): Width of the beam to be used in the beam search algorithm. Only used if 'search_type' is 'beam'. Defaults to 3.
 - device (Optional): Device to be used during model inference. Can be 'cpu' or 'cuda'. Defaults to 'cpu'.
 - use_saved_predictions (Optional): If set to True, uses previously predicted Telugu translations to calculate the BLEU score. Defaults to 'False'.
