@@ -2,7 +2,7 @@
 # Refer to 'step_9_multi_headed_attention.ipynb' (link to the notebook) notebook for a detailed 
 # explanation of each line of code in this file.
 # The transformation of the input in the Multi-Headed Attention layer is shown visually in this
-# pdf - 'Data/Resources/Input_Transformation_Multi_Headed_Attention.pdf' (ADD LINK TO THE PDF). 
+# pdf - 'Data/Resources/Input_Transformation_Multi_Headed_Attention.pdf' (https://github.com/MB1151/attention_is_all_you_need/blob/main/Data/Resources/Input_Transformation_In_Multi_Headed_Attention.pdf). 
 # Please refer to this pdf if the tensor manipulations in the forward function seem confusing.
 
 from model_implementation.utils.helpers import clone_module
