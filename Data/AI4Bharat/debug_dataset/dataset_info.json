@@ -1,0 +1,51 @@
+{
+  "builder_name": "samanantar",
+  "citation": "@misc{ramesh2021samanantar,\n      title={Samanantar: The Largest Publicly Available Parallel Corpora Collection for 11 Indic Languages},\n      author={Gowtham Ramesh and Sumanth Doddapaneni and Aravinth Bheemaraj and Mayank Jobanputra and Raghavan AK and Ajitesh Sharma and Sujit Sahoo and Harshita Diddee and Mahalakshmi J and Divyanshu Kakwani and Navneet Kumar and Aswin Pradeep and Srihari Nagaraj and Kumar Deepak and Vivek Raghavan and Anoop Kunchukuttan and Pratyush Kumar and Mitesh Shantadevi Khapra},\n      year={2021},\n      eprint={2104.05596},\n      archivePrefix={arXiv},\n      primaryClass={cs.CL}\n}\n",
+  "config_name": "te",
+  "dataset_name": "samanantar",
+  "dataset_size": 1121643183,
+  "description": "Samanantar is the largest publicly available parallel corpora collection for Indic languages: Assamese, Bengali, Gujarati, Hindi, Kannada, Malayalam, Marathi, Oriya, Punjabi, Tamil, Telugu. The corpus has 49.6M sentence pairs between English to Indian Languages.\n",
+  "download_checksums": {
+    "https://ai4b-my.sharepoint.com/:u:/g/personal/sumanthdoddapaneni_ai4bharat_org/EXhX84sbTQhLrsURCU9DlUwBVyJ10cYK9bQQe1SMljf_yA?e=q7GJpb&download=1": {
+      "num_bytes": 7178106825,
+      "checksum": null
+    }
+  },
+  "download_size": 7178106825,
+  "features": {
+    "idx": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "src": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "tgt": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "https://indicnlp.ai4bharat.org/samanantar/",
+  "license": "Creative Commons Attribution-NonCommercial 4.0 International",
+  "size_in_bytes": 8299750008,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 1121643183,
+      "num_examples": 4946035,
+      "shard_lengths": [
+        2204000,
+        2207000,
+        535035
+      ],
+      "dataset_name": "samanantar"
+    }
+  },
+  "version": {
+    "version_str": "0.3.0",
+    "major": 0,
+    "minor": 3,
+    "patch": 0
+  }
+}

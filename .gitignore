@@ -2,6 +2,7 @@
 *Zone.Identifier
 *__pycache__
 Data/AI4Bharat/*
+!Data/AI4Bharat/debug_dataset
 Data/trained_models/translation_models/*
 experiments.ipynb
 output.txt
