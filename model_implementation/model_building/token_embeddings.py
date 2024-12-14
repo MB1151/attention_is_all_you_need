@@ -21,8 +21,8 @@
 # encodings. This explanation makes sense theoretically, however, I have seen people mentioning on the internet 
 # that scaling did not have any visible impact on their models (To be verified).
 #
-# Please refer to step_6_word_embeddings.ipynb (link to the notebook) notebook to understand details about each 
-# step in the below code.
+# Please refer to 'building_transformers_step_by_step/model_building/step_6_token_embeddings.ipynb' notebook to understand 
+# details about each step in the below code.
 from torch import nn, Tensor
 
 import math

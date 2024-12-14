@@ -1,6 +1,6 @@
-# This file implements token predictor which converts the decoder output into probabilities over
-# the target vocabulary. Refer to 'step_14_token_predictor.ipynb' (link to the notebook) to 
-# understand hwo this class works.
+# This file implements token predictor which converts the decoder output into probabilities over the target vocabulary. 
+# Refer to 'building_transformers_step_by_step/model_building/step_14_token_predictor.ipynb' to understand hwo this 
+# class works.
 
 from torch import nn, Tensor
 
@@ -20,11 +20,11 @@ class TokenPredictor(nn.Module):
 
         Args:
             decoder_output (Tensor): Output of the Decoder.
-                                     SHAPE: [batch_size, tgt_seq_len, d_model]
+                                     SHAPE: [batch_size, tgt_seq_len - 1, d_model]
 
         Returns:
             Tensor: Log probability distribution over the vocabulary. 
-                    SHAPE: [batch_size, tgt_seq_len, vocab_size]
+                    SHAPE: [batch_size, tgt_seq_len - 1, vocab_size]
         """
         # Project the decoder output to the vocab_size dimensional space.
         logits = self.linear(decoder_output)

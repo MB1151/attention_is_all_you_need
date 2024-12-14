@@ -72,17 +72,15 @@
 # also constructed in a similar way. The target sequence batch is constructed by taking the target sequences from the 
 # 'running_state' list.
 #
-# Refer to 'step_19_beam_search.ipynb' (link to the notebook) to understand the code implementation with an example.
+# Refer to 'step_19_beam_search.ipynb' to understand the code implementation with an example.
 
-from dataclasses import dataclass
+import torch
 
 from model_implementation.data_processing.data_preparation.data_batching_and_masking import construct_look_ahead_mask
 from model_implementation.model_building.machine_translation_model import MachineTranslationModel
 from model_implementation.model_inference.base_search import SequenceSearchBase, SequenceState
 from torch import Tensor
 from typing import List
-
-import torch
 
 
 class BeamSearch(SequenceSearchBase):

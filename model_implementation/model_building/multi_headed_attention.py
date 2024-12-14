@@ -23,7 +23,7 @@ def construct_attention_heads(queries: Tensor,
                               mask: Optional[Tensor]=None, 
                               dropout_layer: Optional[nn.Module]=None) -> Tensor:
     """Calculates the attention scores for each token in the sequence with every other token in the sequence.
-       Applues the mask if provided and then normalizes the scores using softmax. It then calculates the 
+       Applies the mask if provided and then normalizes the scores using softmax. It then calculates the 
        attention heads for each token in the sequence.
 
     Args:
@@ -97,7 +97,7 @@ class MultiHeadedAttention(nn.Module):
         Returns:
             Mutli-Headed Attention Output: Output of the Multi-Headed Attention layer. Generates one output vector 
                                            for each token in the sequence. Does this for each sequence in the batch.
-                                           output: [batch_size, seq_len, d_model]
+                                           SHAPE: [batch_size, seq_len, d_model]
         """
         logger.debug("POINT 0 -- Inside the forward pass of the Multi-Headed Attention layer.")
         # Generates the queries, keys and values for each token in the sequence.

@@ -1,6 +1,6 @@
-# Implementation Of Attention Is All You Need Paper [In Progress]
+# Implementation Of Attention Is All You Need Paper
 
-This repository contains Pytorch implementation of the **English - Telugu** translation model based on the first transformer architecture released in the *Attention Is All You Need* paper (<u>[Link to the paper](https://arxiv.org/abs/1706.03762)</u>).
+This repository contains Pytorch implementation of the **English - Telugu** translation model based on the first transformer architecture released in the **Attention Is All You Need** [paper](https://arxiv.org/abs/1706.03762).
 
 This repository contains two parallel sets of implementations for the same model:
 
@@ -20,19 +20,20 @@ This repository is intended for anyone looking to learn about transformers in de
 - [Hardware](#hardware)
 - [Model Quality Evaluation](#model-quality-evaluation)
 - [Model Debugging](#model-debugging)
+- [Training Artifacts](#training-artifacts)
 
 ## Getting Started
 
 ### Learning Transformers (Recommendation)
 
-- In Step 1, start with [Core Concepts](#core-concepts) to learn the basics of neural networks, RNNs, transformers and a overview of the translation model architecture in the *Attention Is All You Need* paper. Ignore any additional dependencies for now.
+- In Step 1, start with [Core Concepts](#core-concepts) to learn the basics of neural networks, RNNs, transformers, and an overview of the translation model architecture in the **Attention Is All You Need** paper. Ignore any additional dependencies for now.
 - In step 2, learn how [Data Preparation](#data-preparation) works at a high level for the transformer based translation model. 
 - Step 3 is to understand the [Dependent Concepts](#dependent-concepts) that are required to implement any large Deep Learning models in general.
 - Step 4 is to understand the ideas needed to train the model once the core model implementation is in place. Understand the concepts mentioned in [Model Training](#model-training) section.
 - In Step 5, understand how inference works in translation model from the [Model Inference](#model-inference) section.
 - In Step 6, deep dive into the [Implementation](#implementation) details which will need considerable knowledge of the pytorch framework.
-    * Start with deep diving into the `building_transformers_step_by_step/` and understand the implementation. These notebooks point (when needed) to my other repository (understanding_pytorch) which explains how several pytorch functions work.
-
+    * Start with deep diving into the `building_transformers_step_by_step/` and understand the implementation. These notebooks point (when needed) to my other repository (UnderstandingPytorch - Will publish soon) which explains how several pytorch functions work.
+- In Step 7, understand how to evaluate the [quality](#model-quality) of the trained translation model.
 
 ## Useful Resources
 
@@ -41,8 +42,8 @@ This repository is intended for anyone looking to learn about transformers in de
 - [Data Preparation](#data-preparation) &rarr; Resources necessary to understand the data preparation stage.
 - [Model Training](#model-training) &rarr; Resources necessary to understand the translation model training process.
 - [Model Inference](#model-inference) &rarr; Resources necessary to understand the translation model inference process.
-- [Model Quality](#model-quality) &rarr; Resources necessary to understand the quality measurement of a translation model.
 - [Implementation](#implementation) &rarr; Resources necessary to understand the details required to implement the model.
+- [Model Quality](#model-quality) &rarr; Resources necessary to understand the quality measurement of a translation model.
 
 ### Core Concepts
 
@@ -59,7 +60,7 @@ The transformers are built on top of the Neural Networks and hence it is necessa
 - <u>[Blog](https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/)</u> that runs Back Propogation on an example manually without code &rarr; *By Matt Mazur* 
 
 
-#### <u>Word Embeddings</u>
+#### <u>Token Embeddings</u>
 
 The input is divided into tokens which are represented as vectors in the model. Traditionally, these vectors were called word embeddings.
 
@@ -239,7 +240,7 @@ The above resources help us understand the model architecture and necessary depe
 There are several great existing implementations of the *Attention Is All You Need* paper. I used some of these resources to understand the implementation and make my own version.
 
 - <u>[Blog](https://nlp.seas.harvard.edu/annotated-transformer/)</u> gives a very detailed explanation of the model implementation &rarr; *By Harvard team*
-    * I picked the core model implementation from this blog, ran pieces of it in my Jupiter notebooks (uploaded to this repo), explained every single line of code and used it in my final implementation. Made changes whenever necessary to suit my repository.
+    * I copied the core model implementation from this blog, ran pieces of it in my Jupiter notebooks (uploaded to this repo), explained every single line of code and used it in my final implementation. Made changes whenever necessary to suit my repository.
     * This is an excellent resource but not very beginner friendly and takes considerable effort to understand the code. 
 - <u>[Github Repo](https://github.com/gordicaleksa/pytorch-original-transformer)</u> is useful to understand some of the implementation aspects related to the training and inference &rarr; *By Aleksa Gordic* 
 
@@ -256,7 +257,8 @@ There are several great existing implementations of the *Attention Is All You Ne
 
 #### <u>Pytorch</u>
 
-- <u>[Github repo]()</u> explains in detail with examples how the common functions in pytorch work &rarr; *By Maneesh Babu Adhikari*
+- <u>[Github repo]()</u> explains in detail with examples how the common functions in pytorch work (Will publish soon) &rarr; *By Maneesh Babu Adhikari*
+
 
 #### <u>Using GPU</u>
 
@@ -264,11 +266,20 @@ There are several great existing implementations of the *Attention Is All You Ne
 - <u>[Video](https://youtu.be/Bs1mdHZiAS8?si=0SpkfO3POIuffsv3)</u> explains how to create tensors and modules on GPU using pytorch &rarr; *By deeplizard channel*
 
 
+#### Floating Point Computations
+
+- <u>[Video](https://www.youtube.com/watch?v=yvdtwKF87Ts)</u> provides a quick overview of how floating point numbers are represented in computers &rarr; *By Neso Academy*
+- <u>[Blog](https://softwareengineering.stackexchange.com/questions/215065/can-anyone-explain-representation-of-float-in-memory)</u> provides another quick overview of how floating point numbers are represented in computers &rarr; *By John Bode*
+- <u>[Video](https://www.youtube.com/watch?v=PZRI1IfStY0)</u> explains why floating point rounding errors occur in computers &rarr; *By Computerphile*
+- <u>[Blog](https://docs.python.org/3/tutorial/floatingpoint.html)</u> explains how floating point numbers are represented in Python &rarr; *Python official documentation*
+- <u>[Video](https://www.youtube.com/watch?v=m_G3z-C1C2g&t=1s)</u> explains how numbers are represented in Two's complement &rarr; *By MIT OpenCourseware*
+
+
 ## Repository Structure
 
 - `building_transformers_step_by_step/` &rarr; Contains jupyter notebooks with detailed explanations of each step in the implementation.
-- `Data/` &rarr; Contains the datasets used for training, generated artifacts by the model, 
-- `model_implementation/` &rarr; Holds the modularized python scripts for training and inference. 
+- `Data/` &rarr; Contains the datasets used for training, any generated artifacts by during training and evaluation. 
+- `model_implementation/` &rarr; Holds the modularized python scripts used for training, inference, and quality evaluation. 
 
 
 ### Deep Dive into `building_transformers_step_by_step/`
@@ -279,67 +290,70 @@ Here's a short overview of what you'll find inside:
 
 #### `data_preparation/`
 
-- `step_1_data_exploration.ipynb`
+- [`step_1_data_exploration.ipynb`](building_transformers_step_by_step/data_preparation/step_1_data_exploration.ipynb)
     * Loads the AI4Bharat Samanantar English-Telugu translation dataset.
     * Explores the structure of the loaded data.
     * Creates repo specific datasets and saves to `Data/AI4Bharat`.
-- `step_2_training_bpe_tokenizer.ipynb`
+- [`step_2_training_bpe_tokenizer.ipynb`](building_transformers_step_by_step/data_preparation/step_2_training_bpe_tokenizer.ipynb)
     * Uses the HuggingFace libraries to train a tokenizer using the Byte level Byte Pair Encoding (BPE) algorithm on the training data and explores the results.
-    * Saves the trained tokenizers to `Data/trained_models/tokenizers`.
-- `step_2_alternate_tokenization_with_spacy.ipynb`
+    * Saves the trained tokenizers to `Data/trained_models/tokenizers/bpe/`.
+- [`step_2_alternate_tokenization_with_spacy.ipynb`](building_transformers_step_by_step/data_preparation/step_2_alternate_tokenization_with_spacy.ipynb)
     * Explores an alternate tokenization mechanism with pretrained spacy tokenizers.
-- `step_3_datasets_and_dataloaders_pytorch.ipynb`
+- [`step_3_datasets_and_dataloaders_pytorch.ipynb`](building_transformers_step_by_step/data_preparation/step_3_datasets_and_dataloaders_pytorch.ipynb)
     * Explores the creation of general pytorch DataLoaders to load the data efficiently.
-- `step_4_dataloader_with_transformers.ipynb`
+- [`step_4_dataloader_with_transformers.ipynb`](building_transformers_step_by_step/data_preparation/step_4_dataloader_with_transformers.ipynb)
     * Explains how different datasets can be integrated with Pytorch DataLoaders.
     * Creates pytorch Dataloaders to load the English-Telugu translation dataset.
     * Creates length aware pytorch Dataloaders that batch the data based on the sentence lengths.
-- `step_5_data_batching_and_masking.ipynb`
+- [`step_5_data_batching_and_masking.ipynb`](building_transformers_step_by_step/data_preparation/step_5_data_batching_and_masking.ipynb)
     * Shows how to create masks for the source and target sequences.
     * Shows how the batches from pytorch Dataloaders are futher processed to convert the data into the format required by the transformer model.
 
 
 #### `model_building/`
 
-- `step_6_word_embeddings.ipynb`
+- [`step_6_token_embeddings.ipynb`](building_transformers_step_by_step/model_building/step_6_token_embeddings.ipynb)
     * Explores how Embedding layers are created and used in pytorch for tokens in general.
     * Shows how the Embedding layer is used in the translation model.
-- `step_7_drop_out.ipynb`
-    * Explains what dropout is, how it is used and the impact of Dropout the output.
-- `step_8_positional_encoding.ipynb`
+- [`step_7_drop_out.ipynb`](building_transformers_step_by_step/model_building/step_7_drop_out.ipynb)
+    * Explains what dropout is, how it is used and the impact of Dropout on the output.
+- [`step_8_positional_encoding.ipynb`](building_transformers_step_by_step/model_building/step_8_positional_encoding.ipynb)
     * Explains the creation of positional encoding vectors and how they are used in the translation model.
-- `step_9_multi_headed_attention.ipynb`
+- [`step_9_multi_headed_attention.ipynb`](building_transformers_step_by_step/model_building/step_9_multi_headed_attention.ipynb)
     * Explains how to implement Attention module in the transformer architecture.
     * Explains how to implement multi headed attention efficiently in one shot as if handling a single head instead of handling different heads separately.
-- `step_10_feed_forward_neural_network.ipynb`
+- [`step_10_feed_forward_neural_network.ipynb`](building_transformers_step_by_step/model_building/step_10_feed_forward_neural_network.ipynb)
     * Explains how FeedForward neural network is used in translation model.
-- `step_11_layer_normalization.ipynb`
+- [`step_11_layer_normalization.ipynb`](building_transformers_step_by_step/model_building/step_11_layer_normalization.ipynb)
     * Explains how layer normalization works in general and how it is used in the translation model in particular.
-- `step_12_encoder.ipynb`
+- [`step_12_encoder.ipynb`](building_transformers_step_by_step/model_building/step_12_encoder.ipynb)
     * Explains how Encoder works and its implementation in the translation model.
-- `step_13_decoder.ipynb`
+- [`step_13_decoder.ipynb`](building_transformers_step_by_step/model_building/step_13_decoder.ipynb)
     * Explains how Decoder works and its implementation in the translation model.
-- `step_14_token_predictor.ipynb`
+- [`step_14_token_predictor.ipynb`](building_transformers_step_by_step/model_building/step_14_token_predictor.ipynb)
     * Explains the last layer in the translation model that converts the output of the Decoder into probability distributions over the target vocabulary space.
+- [`step_15_machine_translation_model.ipynb`](building_transformers_step_by_step/model_building/step_15_machine_translation_model.ipynb)
+    * Explains how to use all the building blocks explained in previous notebooks to build a machine translation model.
+    * Manually calculates the number of learnable parameters in the model and compares it with the actual model.
 
 
 #### `model_training_and_inference/`
 
-- `step_16_label_smoothing.ipynb`
+- [`step_16_label_smoothing.ipynb`](building_transformers_step_by_step/model_training_and_inference/step_16_label_smoothing.ipynb)
     * Explains what label smoothing is, how it is used in general and how it is used in the translation model.
-- `step_17_loss_computation.ipynb`
+- [`step_17_loss_computation.ipynb`](building_transformers_step_by_step/model_training_and_inference/step_17_loss_computation.ipynb)
     * Explains what KL Divergence is, how it is used to compute the loss in general and how it is used in the translation model.
-- `step_18_learning_rates.ipynb`
+- [`step_18_learning_rates.ipynb`](building_transformers_step_by_step/model_training_and_inference/step_18_learning_rates.ipynb)
     * Explains how learning rate is used to control the training speed in the translation model.
-- `step_19_model_training.ipynb`
-    * Combines all the moving parts to create a module to train the translation model.
-- `step_20_beam_search.ipynb`
+- [`step_19_beam_search.ipynb`](building_transformers_step_by_step/model_training_and_inference/step_19_beam_search.ipynb)
     * Explains how Beam Search is used to predict the model output during inference.
-- `step_21_model_inference.ipynb`
-    * Combines all the moving parts to create a module for inference i.e., to translate English text to Telugu.
-- `step_22_bleu_score.ipynb`
+    * Implementing Beam Search while handling batches during inference is tricky. So, this notebook might be very confusing to understand.
+- [`step_20_bleu_score.ipynb`](building_transformers_step_by_step/model_training_and_inference/step_20_bleu_score.ipynb)
     * Explains how BLEU score is calculated using existing libraries to evaluate the quality of translation model.
 
+NOTE: 
+
+There are two very important steps that I left out of these notebooks i.e., the training script and the inference script. I have to copy the content from every single notebook into a single notebook to write these scripts since they use every part of the model. It is easier to look at the python scripts (`model_implementation/model_training/training_script_main.py`, `model_implementation/model_inference/inference_script_main.py`) to understand these parts.
 
 ### Deep Dive into `Data/`
 
@@ -352,7 +366,10 @@ All the datasets in this directory get generated once the `building_transformers
 - `debug_dataset`
     * A very short dataset used for sample training and identifying issues / bugs in the model implementation.
 - `train_dataset`
-    * Dataset used to train the translation model.
+    * A relatively shorter dataset (`250000` examples) used to train the translation model.
+- `large_train_dataset`
+    * A large dataset (`500000` examples) used to train the translation model.
+    * I used this dataset to train my final model.
 - `full_en_te_dataset`
     * Dataset used to train the tokenizers using BPE.
 - `validation_dataset`
@@ -368,7 +385,7 @@ Contains the images used in various notebooks to explain the model architecture 
 
 Contains additional resources that help in understanding the model architecture.
 
-- `Input_Transformation_In_Multi_Headed_Attention.pdf`
+- [`Input_Transformation_In_Multi_Headed_Attention.pdf`](Data/Resources/Input_Transformation_In_Multi_Headed_Attention.pdf)
     * Shows visually the input transformation during the multi headed attention operation.
 
 #### `trained_models/`
@@ -381,10 +398,10 @@ Contains additional resources that help in understanding the model architecture.
 
 ### Deep Dive into `model_implementation/`
 
-Model Implementation houses the modularized version of the same translation model that is implemented in the Jupiter notebooks. It just has better structure and easy to navigate. However, `model_implementation/` contains additional scripts for training and inference which are not part of the notebooks.  
+Model Implementation houses the modularized version of the same translation model that is implemented in the Jupiter notebooks. It just has better structure and is easy to navigate. However, `model_implementation/` contains additional scripts for training, inference, and quality evaluation which are not part of the notebooks.  
 
 - `model_debug_support.ipynb`
-    * A support notebook to run parts of the code and figure out issues / bugs in the model implementation.
+    * A support notebook to run parts of the code and figure out issues and bugs in the model implementation.
 
 
 ## Usage
@@ -399,7 +416,8 @@ Run the following command to install the necessary packages in the virtual envir
 
 ```pip install -r requirements.txt```
 
-We need to download the dataset from translation dataset from Hugging Face and create smaller datasets to be used with this repository. Run [`step_1_data_exploration.ipynb`](building_transformers_step_by_step/data_preparation/step_1_data_exploration.ipynb) notebook to create all the necessary datasets used during training, inference and quality evaluation.
+We need to download the translation dataset from Hugging Face and create smaller datasets to be used with this repository. Run [`step_1_data_exploration.ipynb`](building_transformers_step_by_step/data_preparation/step_1_data_exploration.ipynb) notebook to create all the necessary datasets used during training, inference and quality evaluation.
+
 
 ### Training
 
@@ -409,7 +427,7 @@ The training script accepts the following command line arguments:
 
 ```
 - model_checkpoint_prefix (Optional): Prefix to be appended to model names while saving to disk. Defaults to empty string ("").
-- model_name (Optional): Name to use to save the final model on disk. Defaults to a randomly generated string.
+- model_name (Optional): Name (prefixed by model_checkpoint_prefix) used to save the trained model on disk. Defaults to a randomly generated string.
 - device (Optional): Device to be used for training the model. Can be 'cpu' or 'cuda'. Defaults to 'cpu'.
 - tokenizer_type (Optional): Tokenizer type to be used in the model. Can be 'spacy' or 'bpe'. Defaults to 'bpe'
 - retrain_tokenizers (Optional): Flag to indicate if the tokenizers should be retrained. Defaults to False
@@ -423,6 +441,8 @@ Run the following command to train the model:
 ```
 python model_implementation/model_training/training_script_main.py --model_name "en-te-model" --model_checkpoint_prefix "first_run" --device "cuda" --tokenizer_type "bpe" --retrain_tokenizers True --max_english_vocab_size 30000 --max_telugu_vocab_size 30000
 ```
+
+The name of the final model saved to disk for the above arguments would be `first_run_en-te-model.pt`.
 
 #### Model Checkpointing:
 
@@ -455,7 +475,7 @@ The entry point to model inference is `model_implementation/model_inference/infe
 The inference script accepts the following command line arguments:
 
 ```
-- model_name (Required): Name of the model to load from disk.
+- model_name (Required): Name (prefixed by model_checkpoint_prefix) of the model to load from disk.
 - model_checkpoint_prefix (Optional): Prefix to be appended to model names while loading from the disk. Defaults to empty string ("").
 - search_type (Optional): Search algorithm to be used during inference. Can be 'beam' or 'greedy'. Defaults to 'beam'.
 - beam_width (Optional): Width of the beam to be used in the beam search algorithm. Only used if 'search_type' is 'beam'. Defaults to 3.
@@ -467,6 +487,14 @@ Run the following command to use the trained model for inference:
 ```
 python model_implementation/model_inference/inference_script_main.py --model_name "en-te-model" --model_checkpoint_prefix "first_run" --device "cuda" --search_type "beam" --beam_width 3
 ```
+
+Points to note:
+
+- Do not provide the model file extension in the `model_name` argument. The extension `.pt` is added by default.
+- The code searches for the following file while loading the model for inference &rarr; `Data/trained_models/translation_models/{model_checkpoint_prefix}_{model_name}.pt`
+- The code searches for the following files while loading the prebuilt bpe tokenizers
+    - For English &rarr; `Data/trained_models/tokenizers/bpe/bpe_english_tokenizer/merges.txt` and `Data/trained_models/tokenizers/bpe/bpe_english_tokenizer/vocab.json`
+    - For Telugu &rarr; `Data/trained_models/tokenizers/bpe/bpe_telugu_tokenizer/merges.txt` and `Data/trained_models/tokenizers/bpe/bpe_telugu_tokenizer/vocab.json`
 
 Issue with inference:
 
@@ -511,7 +539,7 @@ The entry point to model quality evaluation is `model_implementation/model_quali
 The quality evaluation script accepts the following command line arguments:
 
 ```
-- model_name (Required): Name of the model to load from disk.
+- model_name (Required): Name (prefixed by model_checkpoint_prefix) of the model to load from disk.
 - model_checkpoint_prefix (Optional): Prefix to be appended to model names while loading from the disk. Defaults to empty string ("").
 - tokenizer_type (Optional): Tokenizer to be used during quality evaluation. Can be 'spacy' or 'bpe'. Defaults to 'bpe'
 - search_type (Optional): Search algorithm to be used during inference. Can be 'beam' or 'greedy'. Defaults to 'beam'.
@@ -520,7 +548,22 @@ The quality evaluation script accepts the following command line arguments:
 - use_saved_predictions (Optional): If set to True, uses previously predicted Telugu translations to calculate the BLEU score. Defaults to 'False'.
 ```
 
-Inspecting manually on a small number of examples, my best model seems to do a very good job in translating English sentences to Telugu. 
+Run the following command to use the trained model for quality evaluation:
+
+```
+python model_implementation/model_quality/quality_inference_main.py --model_checkpoint_prefix "first_run" --model_name "en-te-model" --device "cuda"  --search_type "beam" --beam_width 3 --tokenizer_type "bpe" --use_saved_predictions False
+```
+
+Points to note:
+
+- Do not provide the model file extension in the `model_name` argument. The extension `.pt` is added by default.
+- The code searches for the following file while loading the model for inference &rarr; `Data/trained_models/translation_models/{model_checkpoint_prefix}_{model_name}.pt`
+- The code searches for the following files while loading the prebuilt bpe tokenizers
+    - For English &rarr; `Data/trained_models/tokenizers/bpe/bpe_english_tokenizer/merges.txt` and `Data/trained_models/tokenizers/bpe/bpe_english_tokenizer/vocab.json`
+    - For Telugu &rarr; `Data/trained_models/tokenizers/bpe/bpe_telugu_tokenizer/merges.txt` and `Data/trained_models/tokenizers/bpe/bpe_telugu_tokenizer/vocab.json`
+
+
+Inspecting manually on a small number of examples, my best model seems to do a good job in translating English sentences to Telugu. Ofcourse, it fails on some examples but I am satisfied with the quality of my first translation model.
 
 The calculated BLEU score is as follows:
 
@@ -571,3 +614,13 @@ Some issues I faced and resolved:
     - Having a benchmark implementation makes it much easier to identify issues. I compared the core implementation of my code with the existing [`annonated-transformer`](https://nlp.seas.harvard.edu/annotated-transformer/) line by line to identify implementation issues in attention specifically.
 - Implement both training script and inference script together
     - It is much easier to debug the model if you can actually verify the output of the model on a test set. So, it is better to implement the inference code before starting the model training.
+
+
+## Training Artifacts
+
+- Trained English-Telugu translation model &rarr; [Drive Link](https://drive.google.com/file/d/1fawBypmJ2RuJAFirp4PMkdGdY_kWBhqj/view?usp=drive_link).
+    - Download this model and place it in `Data/trained_models/translation_models` directory to use it for inference.
+- BPE English tokenizer used in training the model &rarr; [Drive Link](https://drive.google.com/drive/folders/1ZXjzFatNVgltQfi13Q1fOhT81N0odsm5?usp=drive_link)
+    - Download the the files (`merges.txt` and `vocab.json`) from the above link and place them in `Data/trained_models/tokenizers/bpe/bpe_english_tokenizer` directory to use it for inference.
+- BPE Telugu tokenizer used in training the model &rarr; [Drive Link](https://drive.google.com/drive/folders/178CeSR_jb44bXir6bl8yqwhKkf9ZWeuI?usp=drive_link)
+    - Download the files (`merges.txt` and `vocab.json`) from the above link and place them in `Data/trained_models/tokenizers/bpe/bpe_telugu_tokenizer` directory to use it for inference.
