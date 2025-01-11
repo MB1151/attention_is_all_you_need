@@ -32,7 +32,7 @@ This repository is intended for anyone looking to learn about transformers in de
 - Step 4 is to understand the ideas needed to train the model once the core model implementation is in place. Understand the concepts mentioned in [Model Training](#model-training) section.
 - In Step 5, understand how inference works in translation model from the [Model Inference](#model-inference) section.
 - In Step 6, deep dive into the [Implementation](#implementation) details which will need considerable knowledge of the pytorch framework.
-    * Start with deep diving into the `building_transformers_step_by_step/` and understand the implementation. These notebooks point (when needed) to my other repository (UnderstandingPytorch - Will publish soon) which explains how several pytorch functions work.
+    * Start with deep diving into the `building_transformers_step_by_step/` and understand the implementation. These notebooks point (when needed) to my other repository ([understanding_pytorch](https://github.com/MB1151/understanding_pytorch)) which explains how several pytorch functions work.
 - In Step 7, understand how to evaluate the [quality](#model-quality) of the trained translation model.
 
 ## Useful Resources
@@ -257,7 +257,7 @@ There are several great existing implementations of the *Attention Is All You Ne
 
 #### <u>Pytorch</u>
 
-- <u>[Github repo]()</u> explains in detail with examples how the common functions in pytorch work (Will publish soon) &rarr; *By Maneesh Babu Adhikari*
+- <u>[GitHub repository](https://github.com/MB1151/understanding_pytorch)</u> explains in detail with examples how the common functions in pytorch work &rarr; *By Maneesh Babu Adhikari*
 
 
 #### <u>Using GPU</u>
